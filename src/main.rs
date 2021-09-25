@@ -4,6 +4,7 @@ mod database;
 mod errors;
 mod users;
 
+use actix_files::Files;
 use actix_session::CookieSession;
 use actix_web::{web, App, HttpServer};
 use dotenv::dotenv;
@@ -24,10 +25,22 @@ async fn main() -> std::io::Result<()> {
                     .secure(false)
                     .name("session"),
             )
-            .service(web::scope("/auth").configure(auth::configure))
-            .service(web::scope("/users").configure(users::configure))
+            .configure(configure_api)
+            .configure(configure_static_file_sharing)
     })
     .bind(config.server_addr)?
     .run()
     .await
+}
+
+fn configure_api(cfg: &mut web::ServiceConfig) {
+    cfg.service(
+        web::scope("/api")
+            .service(web::scope("/auth").configure(auth::configure))
+            .service(web::scope("/users").configure(users::configure)),
+    );
+}
+
+fn configure_static_file_sharing(cfg: &mut web::ServiceConfig) {
+    cfg.service(Files::new("/", "./static").index_file("index.html"));
 }
