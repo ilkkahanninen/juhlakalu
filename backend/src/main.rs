@@ -42,5 +42,5 @@ fn configure_api(cfg: &mut web::ServiceConfig) {
 }
 
 fn configure_static_file_sharing(cfg: &mut web::ServiceConfig) {
-    cfg.service(Files::new("/", "./static").index_file("index.html"));
+    cfg.service(Files::new("/", "./frontend/target").index_file("index.html"));
 }
