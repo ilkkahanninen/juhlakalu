@@ -20,7 +20,7 @@ async fn validate_credentials(client: &Client, credentials: &Credentials) -> Res
           SELECT
             *
           FROM
-            passwords
+            user_passwords
           WHERE
             username = $1
             AND password_hash = crypt($2, password_hash)
@@ -31,6 +31,13 @@ async fn validate_credentials(client: &Client, credentials: &Credentials) -> Res
 
     match result {
         Ok(true) => Ok(()),
+        _ => Err(JkError::Unauthorized),
+    }
+}
+
+pub fn validate_admin_role(session: &Session) -> Result<(), JkError> {
+    match session.get::<User>("user")? {
+        Some(user) if user.is_admin() => Ok(()),
         _ => Err(JkError::Unauthorized),
     }
 }
