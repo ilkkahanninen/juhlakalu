@@ -71,7 +71,7 @@ async fn current_user_route(session: Session) -> Result<impl Responder, JkError>
     let user_opt = session.get::<User>("user")?;
     match user_opt {
         Some(user) => Ok(HttpResponse::Ok().json(user)),
-        None => Ok(HttpResponse::Ok().json(ErrorMessage::unauthorized())),
+        None => Ok(HttpResponse::Unauthorized().json(ErrorMessage::unauthorized())),
     }
 }
 
