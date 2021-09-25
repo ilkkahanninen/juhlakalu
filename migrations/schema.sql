@@ -14,7 +14,7 @@ CREATE UNIQUE INDEX users_username_key ON users (username text_ops);
 
 -- Table Definition ----------------------------------------------
 CREATE TABLE passwords (
-  user_id text PRIMARY KEY REFERENCES users (username) ON DELETE CASCADE ON UPDATE CASCADE,
+  username text PRIMARY KEY REFERENCES users (username) ON DELETE CASCADE ON UPDATE CASCADE,
   password_hash text NOT NULL
 );
 

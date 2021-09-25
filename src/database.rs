@@ -33,3 +33,13 @@ pub async fn query_one<T: FromTokioPostgresRow>(
     let row = client.query_one(&statement, &params).await?;
     Ok(T::from_row_ref(&row).unwrap())
 }
+
+pub async fn query_exists(
+    client: &Client,
+    query_str: &str,
+    params: &[&(dyn ToSql + Sync)],
+) -> Result<bool, JkError> {
+    let statement = client.prepare(query_str).await.unwrap();
+    let row = client.query_opt(&statement, &params).await?;
+    Ok(row.is_some())
+}
