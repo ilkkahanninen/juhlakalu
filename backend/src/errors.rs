@@ -4,6 +4,7 @@ use derive_more::{Display, From};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper::Error as PGMError;
 use tokio_postgres::Error as PGError;
+use ts_rs::{export, TS};
 
 #[derive(Display, From, Debug)]
 pub enum JkError {
@@ -17,11 +18,13 @@ pub enum JkError {
 
 impl std::error::Error for JkError {}
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, TS)]
 pub struct ErrorMessage {
     error: &'static str,
     message: String,
 }
+
+export! { ErrorMessage => "frontend/src/rust-types/ErrorMessage.ts" }
 
 impl ErrorMessage {
     pub fn not_found() -> Self {

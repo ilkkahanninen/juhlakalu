@@ -27,3 +27,4 @@ tokio-postgres = "0.5.1"
 
 # Utils
 derive_more = "0.99.2"
+ts-rs = "3.0"

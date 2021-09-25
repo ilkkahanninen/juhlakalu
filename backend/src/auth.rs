@@ -1,16 +1,21 @@
 use actix_session::Session;
 use actix_web::{get, post, web, HttpResponse, Responder};
 use deadpool_postgres::{Client, Pool};
+use ts_rs::{export, TS};
 
 use crate::database::{get_client, query_exists};
 use crate::errors::{ErrorMessage, JkError};
 use crate::users::{get_user, User};
 use serde::Deserialize;
 
-#[derive(Deserialize, Debug)]
-struct Credentials {
+#[derive(Deserialize, Debug, TS)]
+pub struct Credentials {
     username: String,
     password: String,
+}
+
+export! {
+    Credentials => "frontend/src/rust-types/Credentials.ts"
 }
 
 async fn validate_credentials(client: &Client, credentials: &Credentials) -> Result<(), JkError> {

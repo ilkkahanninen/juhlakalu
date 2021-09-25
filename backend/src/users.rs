@@ -9,8 +9,9 @@ use deadpool_postgres::Client;
 use deadpool_postgres::Pool;
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
+use ts_rs::{export, TS};
 
-#[derive(Deserialize, PostgresMapper, Serialize, Debug)]
+#[derive(Deserialize, PostgresMapper, Serialize, Debug, TS)]
 #[pg_mapper(table = "users")]
 pub struct User {
     pub username: String,
@@ -21,6 +22,10 @@ impl User {
     pub fn is_admin(&self) -> bool {
         self.roles.contains(&"admin".into())
     }
+}
+
+export! {
+  User => "frontend/src/rust-types/User.ts"
 }
 
 pub async fn get_user(client: &Client, username: &str) -> Result<User, JkError> {
