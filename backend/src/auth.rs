@@ -76,5 +76,7 @@ async fn current_user_route(session: Session) -> Result<impl Responder, JkError>
 }
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
-    cfg.service(current_user_route).service(login_route);
+    cfg.service(current_user_route)
+        .service(login_route)
+        .service(logout_route);
 }

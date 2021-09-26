@@ -1,7 +1,7 @@
 import { Credentials } from "../rust-types/Credentials";
 import { User } from "../rust-types/User";
-import { apiFetch } from "./apiFetch";
+import { fetchJson } from "./apiFetch";
 
-export const login = apiFetch<Credentials, User>("POST", "/auth/login");
-export const logout = apiFetch<void, void>("GET", "/auth/logout");
-export const getCurrentUser = apiFetch<void, User>("GET", "/auth/currentUser");
+export const login = fetchJson<Credentials, User>("POST", "/auth/login");
+export const logout = fetchJson<void, undefined>("GET", "/auth/logout");
+export const getCurrentUser = fetchJson<void, User>("GET", "/auth/currentUser");

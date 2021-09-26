@@ -5,13 +5,20 @@ import { flow } from "fp-ts/lib/function";
 import { fold } from "fp-ts/lib/Semigroup";
 
 export type TaskInit = { state: "init" };
-export type TaskLoading = { state: "loading" };
+export type TaskLoading<E, A> = { state: "loading"; task: TE.TaskEither<E, A> };
 export type TaskOk<T> = { state: "ok"; result: T };
 export type TaskError<T> = { state: "error"; result: T };
-export type TaskState<E, A> = TaskInit | TaskLoading | TaskOk<A> | TaskError<E>;
+export type TaskState<E, A> =
+  | TaskInit
+  | TaskLoading<E, A>
+  | TaskOk<A>
+  | TaskError<E>;
 
 const init = (): TaskInit => ({ state: "init" });
-const start = (): TaskLoading => ({ state: "loading" });
+const start = <E, A>(task: TE.TaskEither<E, A>): TaskLoading<E, A> => ({
+  state: "loading",
+  task,
+});
 const finish = <T>(result: T): TaskOk<T> => ({ state: "ok", result });
 const fail = <T>(result: T): TaskError<T> => ({ state: "error", result });
 
@@ -33,7 +40,7 @@ export const useTask = <E, A>(task: TE.TaskEither<E, A>): TaskState<E, A> => {
   const [state, setState] = useState<TaskState<E, A>>(init());
 
   useEffect(() => {
-    setState(start());
+    setState(start(task));
     task().then(flow(E.fold<E, A, TaskState<E, A>>(fail, finish), setState));
   }, [task]);
 
