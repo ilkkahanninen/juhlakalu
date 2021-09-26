@@ -1,12 +1,11 @@
-import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
+import { pipe } from "fp-ts/function";
 import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
-import * as E from "fp-ts/Either";
-import React, { useCallback, useContext, useMemo, useState } from "react";
-import { User } from "../rust-types/User";
 import { Lens } from "monocle-ts";
+import React, { useContext, useMemo, useState } from "react";
 import { ErrorMessage } from "../rust-types/ErrorMessage";
-import { pipe } from "fp-ts/function";
+import { User } from "../rust-types/User";
 
 // State structure and initial values
 

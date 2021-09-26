@@ -2,7 +2,6 @@ import * as TE from "fp-ts/TaskEither";
 import * as E from "fp-ts/Either";
 import { useEffect, useState } from "react";
 import { flow } from "fp-ts/lib/function";
-import { fold } from "fp-ts/lib/Semigroup";
 
 export type TaskInit = { state: "init" };
 export type TaskLoading<E, A> = { state: "loading"; task: TE.TaskEither<E, A> };

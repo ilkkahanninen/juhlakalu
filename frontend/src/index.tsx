@@ -1,6 +1,3 @@
-import { pipe } from "fp-ts/lib/function";
-import * as O from "fp-ts/Option";
-import * as TE from "fp-ts/TaskEither";
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";

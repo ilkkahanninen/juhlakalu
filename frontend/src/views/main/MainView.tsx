@@ -1,7 +1,6 @@
-import { constant } from "fp-ts/lib/function";
 import React from "react";
-import { errorL, useAppState, userL } from "../../state/AppState";
 import { logout } from "../../api/api";
+import { errorL, useAppState, userL } from "../../state/AppState";
 
 export const MainView = () => {
   const { state, dispatchTaskEither } = useAppState();
