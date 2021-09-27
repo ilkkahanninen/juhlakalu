@@ -1,5 +1,8 @@
 import React from "react";
 import { logout } from "../../api/api";
+import { RaisedButton } from "../../components/atoms/buttons";
+import { Headline } from "../../components/atoms/typography";
+import { ViewContainer } from "../../components/atoms/ViewContainer";
 import { errorL, useAppState, userL } from "../../state/AppState";
 
 export const MainView = () => {
@@ -9,9 +12,9 @@ export const MainView = () => {
   };
 
   return (
-    <div>
-      <h1>Hello, {state.user?.username}!</h1>
-      <button onClick={logoutUser}>Logout</button>
-    </div>
+    <ViewContainer>
+      <Headline>Hello, {state.user?.username}!</Headline>
+      <RaisedButton onClick={logoutUser}>Logout</RaisedButton>
+    </ViewContainer>
   );
 };

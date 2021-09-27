@@ -6,6 +6,9 @@ import { AppStateProvider, errorL, useAppState, userL } from "./state/AppState";
 import { LoginView } from "./views/login/LoginView";
 import { MainView } from "./views/main/MainView";
 
+import "./style/normalize.css";
+import "./style/typography.less";
+
 const App = () => (
   <AppStateProvider>
     <AuthCheck />
