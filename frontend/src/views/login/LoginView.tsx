@@ -1,20 +1,23 @@
-import { flow } from "fp-ts/lib/function";
-import React, { useEffect, useState } from "react";
+import { Lens } from "monocle-ts";
+import React, { useState } from "react";
 import { login } from "../../api/api";
+import { ButtonGroup, FormSubmitButton } from "../../components/atoms/buttons";
+import { ErrorMessage } from "../../components/atoms/messages";
 import { Headline } from "../../components/atoms/typography";
 import { ViewContainer } from "../../components/atoms/ViewContainer";
-import { FormTextInput, TextInput } from "../../components/forms/TextInput";
-import { Credentials } from "../../rust-types/Credentials";
-import { loginErrorL, useAppState, userL } from "../../state/AppState";
-import { setter } from "../../utils/objects";
-import { Lens } from "monocle-ts";
-import {
-  ButtonGroup,
-  FormSubmitButton,
-  RaisedButton,
-} from "../../components/atoms/buttons";
 import { Form } from "../../components/forms/Form";
-import { ErrorMessage } from "../../components/atoms/messages";
+import { FormTextInput } from "../../components/forms/TextInput";
+import { Credentials } from "../../rust-types/Credentials";
+import {
+  loginErrorL,
+  loginIsLoadingL,
+  loginViewL,
+  useAppState,
+  useResetState,
+  userL,
+} from "../../state/AppState";
+import { startedAsyncState } from "../../state/asyncState";
+import { setter } from "../../utils/objects";
 
 const setUsername = setter<Credentials>()("username");
 const setPassword = setter<Credentials>()("password");
@@ -24,22 +27,22 @@ const passwordL = Lens.fromProp<Credentials>()("password");
 
 export const LoginView = () => {
   const { state, dispatch, dispatchTaskEither } = useAppState();
+  useResetState(loginViewL, { error: undefined, isLoading: false });
 
   const form = useState<Credentials>({
     username: "",
     password: "",
   });
 
-  useEffect(() => {
-    dispatch(loginErrorL.set(undefined));
-  }, []);
-
-  const submit = () => {
-    dispatch(loginErrorL.set(undefined));
-    dispatchTaskEither(login(form[0]), loginErrorL.set, userL.set);
+  const submit = async () => {
+    dispatch(loginViewL.set(startedAsyncState));
+    await dispatchTaskEither(login(form[0]), loginErrorL.set, userL.set);
+    dispatch(loginIsLoadingL.set(false));
   };
 
   const error = loginErrorL.get(state);
+  const isLoading = loginIsLoadingL.get(state);
+  const formFilled = Boolean(form[0].username && form[0].password);
 
   return (
     <ViewContainer>
@@ -54,7 +57,9 @@ export const LoginView = () => {
           type="password"
         />
         <ButtonGroup>
-          <FormSubmitButton>Login</FormSubmitButton>
+          <FormSubmitButton disabled={isLoading || !formFilled}>
+            Login
+          </FormSubmitButton>
         </ButtonGroup>
       </Form>
     </ViewContainer>

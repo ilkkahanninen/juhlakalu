@@ -3,10 +3,15 @@ import { joinClassNames } from "../../utils/strings";
 import "./buttons.less";
 
 export const ButtonGroup = plainComponent("section", "buttongroup");
-export const RaisedButton = plainComponent("button", "raisedbutton");
+export const RaisedButton = plainComponent(
+  "button",
+  "button button__raisedbutton"
+);
 
-export type FormSubmitButtonProps = React.HTMLAttributes<HTMLInputElement> & {
+export type FormSubmitButtonProps = {
   children: string;
+  className?: string;
+  disabled?: boolean;
 };
 
 export const FormSubmitButton = ({
@@ -16,7 +21,7 @@ export const FormSubmitButton = ({
 }: FormSubmitButtonProps) => (
   <input
     type="submit"
-    className={joinClassNames("raisedbutton", className)}
+    className={joinClassNames("button button__raisedbutton", className)}
     value={children}
     {...rest}
   />

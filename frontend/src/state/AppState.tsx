@@ -3,25 +3,24 @@ import { pipe } from "fp-ts/function";
 import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
 import { Lens } from "monocle-ts";
-import React, { useContext, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { ErrorMessage } from "../rust-types/ErrorMessage";
 import { User } from "../rust-types/User";
+import { AsyncState, initialAsyncState } from "./asyncState";
 
 // State structure and initial values
 
 export type AppState = {
   user?: User;
   error?: ErrorMessage;
-  loginView: {
-    error?: ErrorMessage;
-  };
+  loginView: AsyncState;
 };
 
 export const initialState: AppState = {
   user: undefined,
   error: undefined,
   loginView: {
-    error: undefined,
+    ...initialAsyncState,
   },
 };
 
@@ -33,7 +32,9 @@ const rootPath = Lens.fromPath<AppState>();
 export const userL = rootProp("user");
 export const errorL = rootProp("error");
 
+export const loginViewL = rootProp("loginView");
 export const loginErrorL = rootPath(["loginView", "error"]);
+export const loginIsLoadingL = rootPath(["loginView", "isLoading"]);
 
 // React context
 
@@ -93,3 +94,10 @@ export const AppStateProvider = (props: AppStateProviderProps) => {
 };
 
 export const useAppState = () => useContext(AppStateContext);
+
+export const useResetState = <T,>(lens: Lens<AppState, T>, initialState: T) => {
+  const { dispatch } = useAppState();
+  useEffect(() => {
+    dispatch(lens.set(initialState));
+  }, []);
+};
