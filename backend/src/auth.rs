@@ -4,7 +4,7 @@ use deadpool_postgres::{Client, Pool};
 use ts_rs::{export, TS};
 
 use crate::database::{get_client, query_exists};
-use crate::errors::{ErrorMessage, JkError};
+use crate::errors::JkError;
 use crate::users::{get_user, User};
 use serde::Deserialize;
 
@@ -71,7 +71,7 @@ async fn current_user_route(session: Session) -> Result<impl Responder, JkError>
     let user_opt = session.get::<User>("user")?;
     match user_opt {
         Some(user) => Ok(HttpResponse::Ok().json(user)),
-        None => Ok(HttpResponse::Unauthorized().json(ErrorMessage::unauthorized())),
+        None => Err(JkError::Unauthorized),
     }
 }
 

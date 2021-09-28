@@ -6,8 +6,9 @@ mod users;
 
 use actix_files::Files;
 use actix_session::CookieSession;
-use actix_web::{web, App, HttpServer};
+use actix_web::{web, App, HttpServer, ResponseError};
 use dotenv::dotenv;
+use errors::JkError;
 use tokio_postgres::NoTls;
 
 #[actix_web::main]
@@ -27,6 +28,7 @@ async fn main() -> std::io::Result<()> {
             )
             .configure(configure_api)
             .configure(configure_static_file_sharing)
+            .default_service(web::to(|| JkError::NotFound.error_response()))
     })
     .bind(config.server_addr)?
     .run()
