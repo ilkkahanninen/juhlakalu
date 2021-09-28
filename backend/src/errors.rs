@@ -48,6 +48,7 @@ impl ResponseError for JkError {
     fn error_response(&self) -> HttpResponse {
         let status_code = self.status_code();
         let (error, message) = self.error_and_message();
+
         HttpResponse::build(status_code).json(ErrorMessage {
             status_code: status_code.as_u16(),
             error,

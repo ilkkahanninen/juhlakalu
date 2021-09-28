@@ -14,7 +14,7 @@ pub async fn query<T: FromTokioPostgresRow>(
     query_str: &str,
     params: &[&(dyn ToSql + Sync)],
 ) -> Result<Vec<T>, JkError> {
-    let statement = client.prepare(query_str).await.unwrap();
+    let statement = client.prepare(query_str).await?;
     let result = client
         .query(&statement, &params)
         .await?
@@ -29,7 +29,7 @@ pub async fn query_one<T: FromTokioPostgresRow>(
     query_str: &str,
     params: &[&(dyn ToSql + Sync)],
 ) -> Result<T, JkError> {
-    let statement = client.prepare(query_str).await.unwrap();
+    let statement = client.prepare(query_str).await?;
     let row = client.query_one(&statement, &params).await?;
     Ok(T::from_row_ref(&row).unwrap())
 }
@@ -39,7 +39,13 @@ pub async fn query_exists(
     query_str: &str,
     params: &[&(dyn ToSql + Sync)],
 ) -> Result<bool, JkError> {
-    let statement = client.prepare(query_str).await.unwrap();
+    let statement = client.prepare(query_str).await?;
     let row = client.query_opt(&statement, &params).await?;
     Ok(row.is_some())
+}
+
+pub async fn load_fixtures(client: &Client) -> Result<(), JkError> {
+    let query = include_str!("../migrations/fixtures/tests.sql");
+    client.batch_execute(&query).await?;
+    Ok(())
 }

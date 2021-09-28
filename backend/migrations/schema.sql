@@ -27,8 +27,15 @@ CREATE TABLE roles (
 
 CREATE UNIQUE INDEX roles_pkey ON roles (id text_ops);
 
-INSERT INTO "public"."roles" ("id", "description")
-  VALUES (E'admin', E'Administration super human'), (E'voter', E'Voting rights');
+INSERT INTO "public"."roles" (
+  "id",
+  "description")
+VALUES (
+  E'admin',
+  E'Administration super human'),
+(
+  E'voter',
+  E'Voting rights');
 
 -- User-role mapping ---------------------------------------------
 CREATE TABLE user_roles (

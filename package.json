@@ -4,7 +4,9 @@
   "author": "Ilkka Hänninen <ilkka.hanninen@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "parcel watch frontend/src/index.html --dist-dir frontend/target --no-hmr"
+    "start": "parcel watch frontend/src/index.html --dist-dir frontend/target --no-hmr",
+    "clean": "rm -rf .parcel-cache && rm -rf ./frontend/target",
+    "build": "parcel build frontend/src/index.html --dist-dir frontend/target"
   },
   "dependencies": {
     "fp-ts": "^2.11.3",
