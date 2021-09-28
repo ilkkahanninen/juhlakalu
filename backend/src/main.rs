@@ -8,9 +8,9 @@ mod users;
 use actix_files::Files;
 use actix_session::CookieSession;
 use actix_web::{middleware::Logger, web, App, HttpServer, ResponseError};
+use database::create_db_pool;
 use dotenv::dotenv;
 use errors::JkError;
-use tokio_postgres::NoTls;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -19,8 +19,9 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
 
     let config = crate::config::Config::from_env().unwrap();
-    let db_pool = config.pg.create_pool(NoTls).unwrap();
     let is_test_mode = config.jk_test;
+
+    let db_pool = create_db_pool().await;
 
     HttpServer::new(move || {
         let app = App::new()

@@ -7,8 +7,6 @@ CREATE TABLE users (
   phone text
 );
 
-CREATE UNIQUE INDEX users_pkey ON users (username text_ops);
-
 CREATE UNIQUE INDEX users_username_key ON users (username text_ops);
 
 -- Passwords -----------------------------------------------------
@@ -17,15 +15,13 @@ CREATE TABLE user_passwords (
   password_hash text NOT NULL
 );
 
-CREATE UNIQUE INDEX passwords_pkey ON user_passwords (user_id text_ops);
+CREATE UNIQUE INDEX passwords_pkey ON user_passwords (username text_ops);
 
 -- Roles ---------------------------------------------------------
 CREATE TABLE roles (
   id text PRIMARY KEY,
   description text
 );
-
-CREATE UNIQUE INDEX roles_pkey ON roles (id text_ops);
 
 INSERT INTO "public"."roles" (
   "id",

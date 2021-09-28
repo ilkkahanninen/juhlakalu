@@ -6,9 +6,9 @@ use ts_rs::{export, TS};
 use crate::database::{get_client, query_exists};
 use crate::errors::JkError;
 use crate::users::{get_user, User};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Debug, TS)]
+#[derive(Serialize, Deserialize, Debug, TS)]
 pub struct Credentials {
     username: String,
     password: String,
@@ -79,4 +79,55 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(current_user_route)
         .service(login_route)
         .service(logout_route);
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::database::create_test_db_pool;
+
+    use super::*;
+    use actix_web::{http::StatusCode, test, App};
+
+    #[actix_rt::test]
+    #[serial_test::serial]
+    async fn test_login_success() {
+        let resp = run_login_test(Credentials {
+            username: "admin".into(),
+            password: "admin2".into(),
+        })
+        .await;
+        assert_eq!(resp.status(), StatusCode::OK);
+    }
+
+    #[actix_rt::test]
+    #[serial_test::serial]
+    async fn test_login_unauthorized() {
+        let resp = run_login_test(Credentials {
+            username: "xxxxx".into(),
+            password: "foo".into(),
+        })
+        .await;
+        assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    async fn run_login_test(credentials: Credentials) -> actix_web::dev::ServiceResponse {
+        let pool = create_test_db_pool().await;
+        let mut app = test::init_service(
+            App::new()
+                .data(pool)
+                .wrap(
+                    actix_session::CookieSession::signed(&[0; 32])
+                        .secure(false)
+                        .name("session"),
+                )
+                .configure(configure),
+        )
+        .await;
+
+        let req = test::TestRequest::post()
+            .uri("/login")
+            .set_json(&credentials);
+
+        test::call_service(&mut app, req.to_request()).await
+    }
 }

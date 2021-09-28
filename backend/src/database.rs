@@ -5,6 +5,11 @@ use deadpool_postgres::Pool;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_postgres::types::ToSql;
 
+pub async fn create_db_pool() -> Pool {
+    let config = crate::config::Config::from_env().unwrap();
+    config.pg.create_pool(tokio_postgres::NoTls).unwrap()
+}
+
 pub async fn get_client(db_pool: web::Data<Pool>) -> Result<Client, JkError> {
     db_pool.get().await.map_err(JkError::PoolError)
 }
@@ -44,8 +49,33 @@ pub async fn query_exists(
     Ok(row.is_some())
 }
 
+pub async fn drop_tables(client: &Client) -> Result<(), JkError> {
+    let query = include_str!("../migrations/drop_tables.sql");
+    client.batch_execute(&query).await?;
+    Ok(())
+}
+
+pub async fn create_tables(client: &Client) -> Result<(), JkError> {
+    let query = include_str!("../migrations/create_tables.sql");
+    client.batch_execute(&query).await?;
+    Ok(())
+}
+
 pub async fn load_fixtures(client: &Client) -> Result<(), JkError> {
     let query = include_str!("../migrations/fixtures/tests.sql");
     client.batch_execute(&query).await?;
     Ok(())
+}
+
+#[allow(dead_code)]
+pub async fn create_test_db_pool() -> Pool {
+    dotenv::from_filename(".test.env").ok();
+    let pool = create_db_pool().await;
+
+    let client = pool.get().await.unwrap();
+    drop_tables(&client).await.unwrap();
+    create_tables(&client).await.unwrap();
+    load_fixtures(&client).await.unwrap();
+
+    pool
 }

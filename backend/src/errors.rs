@@ -41,6 +41,7 @@ impl ResponseError for JkError {
     fn status_code(&self) -> StatusCode {
         match self {
             JkError::NotFound => StatusCode::NOT_FOUND,
+            JkError::Unauthorized => StatusCode::UNAUTHORIZED,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
