@@ -1,13 +1,23 @@
-all: frontend backend
+all: frontend backend release
 
 .PHONY: clean
 clean:
 	rm -rf .parcel-cache
 	rm -rf ./frontend/target
 
+.PHONY: dev-install
+dev-install:
+	yarn install
+	cargo install --path .
+	cargo install cargo-watch
+
 .PHONY: dev
 dev:
-	yarn start & cargo run
+	yarn start & cargo watch -x 'run --bin juhlakalu'
+
+.PHONY: test
+test:
+	cargo test
 
 .PHONY: frontend
 frontend:
