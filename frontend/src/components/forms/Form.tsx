@@ -1,4 +1,5 @@
 import React, { useCallback } from "react";
+import "./Form.less";
 
 export type FormProps = {
   onSubmit: () => void;
@@ -14,5 +15,9 @@ export const Form = ({ onSubmit, children }: FormProps) => {
     },
     [onSubmit]
   );
-  return <form onSubmit={submit}>{children}</form>;
+  return (
+    <form className="form" onSubmit={submit}>
+      {children}
+    </form>
+  );
 };

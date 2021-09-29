@@ -32,7 +32,7 @@ Backend and frontend code both trigger recompiling. Hot-reload is disabled at th
 
 ## Database
 
-You can install and run Postgres normally. If you have Docker installed you can also start it by running `make docker-db`
+You can install and run Postgres normally. If you have Docker installed you can also start it by running `make docker-dbi`
 
 ## License
 
