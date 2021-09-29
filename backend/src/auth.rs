@@ -1,9 +1,8 @@
 use actix_session::Session;
 use actix_web::{get, post, web, HttpResponse, Responder};
-use deadpool_postgres::{Client, Pool};
 use ts_rs::{export, TS};
 
-use crate::database::{get_client, query_exists};
+use crate::database::{query_exists, DbClient, DbPool};
 use crate::errors::JkError;
 use crate::users::{get_user, User};
 use serde::{Deserialize, Serialize};
@@ -18,14 +17,14 @@ export! {
     Credentials => "frontend/src/rust-types/Credentials.ts"
 }
 
-async fn validate_credentials(client: &Client, credentials: &Credentials) -> Result<(), JkError> {
+async fn validate_credentials(client: &DbClient, credentials: &Credentials) -> Result<(), JkError> {
     let result = query_exists(
         client,
         "
           SELECT
             *
           FROM
-            user_passwords
+            {{SCHEMA}}.user_passwords
           WHERE
             username = $1
             AND password_hash = crypt($2, password_hash)
@@ -50,10 +49,10 @@ pub fn validate_admin_role(session: &Session) -> Result<(), JkError> {
 #[post("/login")]
 async fn login_route(
     credentials: web::Json<Credentials>,
-    db_pool: web::Data<Pool>,
+    db_pool: web::Data<DbPool>,
     session: Session,
 ) -> Result<impl Responder, JkError> {
-    let client = get_client(db_pool).await?;
+    let client = DbClient::from_data(db_pool).await?;
     validate_credentials(&client, &credentials).await?;
     let user = get_user(&client, &credentials.username).await?;
     session.set("user", &user)?;

@@ -6,7 +6,7 @@ import { ErrorMessage } from "../rust-types/ErrorMessage";
 export type Method = "GET" | "POST";
 
 export const routeToUrl = (route: string) =>
-  `http://localhost:8080/api${route}`;
+  `${location.protocol}//${location.host}/api${route}`;
 
 export const fetchJson =
   <T, S extends object | undefined>(method: Method, route: string) =>

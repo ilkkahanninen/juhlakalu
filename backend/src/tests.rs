@@ -1,15 +1,14 @@
 use actix_web::{get, web, HttpResponse};
-use deadpool_postgres::Pool;
 
 use crate::{
-    database::{get_client, load_fixtures},
+    database::{DbClient, DbPool},
     errors::JkError,
 };
 
 #[get("/reset")]
-pub async fn reset_fixtures(db_pool: web::Data<Pool>) -> Result<HttpResponse, JkError> {
-    let client = get_client(db_pool).await?;
-    load_fixtures(&client).await?;
+pub async fn reset_fixtures(db_pool: web::Data<DbPool>) -> Result<HttpResponse, JkError> {
+    let client = DbClient::from_data(db_pool).await?;
+    client.load_fixtures().await?;
     Ok(HttpResponse::Ok().finish())
 }
 

@@ -1,7 +1,7 @@
-BEGIN;
-TRUNCATE TABLE users CASCADE;
+TRUNCATE TABLE {{SCHEMA}}.users CASCADE;
+
 --- Users ---
-INSERT INTO users (
+INSERT INTO {{SCHEMA}}.users (
   "username",
   "email",
   "phone")
@@ -17,8 +17,9 @@ VALUES (
   E'voter',
   E'voter@gmail.com',
   NULL);
+
 --- Passwords ---
-INSERT INTO user_passwords (
+INSERT INTO {{SCHEMA}}.user_passwords (
   "username",
   "password_hash")
 VALUES (
@@ -33,8 +34,9 @@ VALUES (
   -- newbie:newbie2
   E'newbie',
   E'$2a$06$/yhMZa390uXt65wXmknHeuwDKJUdF0XBwRSDrpsj45xc1/dMTqpXq');
+
 --- User roles ---
-INSERT INTO user_roles (
+INSERT INTO {{SCHEMA}}.user_roles (
   "username",
   "role")
 VALUES (
@@ -46,5 +48,4 @@ VALUES (
 (
   E'voter',
   E'voter');
-COMMIT;
 

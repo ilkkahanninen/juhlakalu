@@ -4,22 +4,149 @@ use deadpool_postgres::Client;
 use deadpool_postgres::Pool;
 use tokio_pg_mapper::FromTokioPostgresRow;
 use tokio_postgres::types::ToSql;
+use tokio_postgres::Row;
+use tokio_postgres::Statement;
+use tokio_postgres::ToStatement;
 
-pub async fn create_db_pool() -> Pool {
-    let config = crate::config::Config::from_env().unwrap();
-    config.pg.create_pool(tokio_postgres::NoTls).unwrap()
+#[derive(Clone)]
+pub struct DbPool {
+    pool: Pool,
+    default_schema: &'static str,
+    db_pool_type: DbPoolType,
 }
 
-pub async fn get_client(db_pool: web::Data<Pool>) -> Result<Client, JkError> {
-    db_pool.get().await.map_err(JkError::PoolError)
+#[derive(Clone, Copy)]
+pub enum DbPoolType {
+    Prod,
+    Test,
+}
+
+pub struct DbClient {
+    pub client: Client,
+    pub schema: &'static str,
+    pub db_type: DbPoolType,
+}
+
+impl DbClient {
+    pub async fn from_pool(pool: DbPool) -> Result<DbClient, JkError> {
+        Ok(DbClient {
+            client: pool.pool.get().await.map_err(JkError::PoolError)?,
+            schema: pool.default_schema,
+            db_type: pool.db_pool_type,
+        })
+    }
+
+    pub async fn from_data(pool: web::Data<DbPool>) -> Result<DbClient, JkError> {
+        Ok(DbClient {
+            client: pool.pool.get().await.map_err(JkError::PoolError)?,
+            schema: pool.default_schema,
+            db_type: pool.db_pool_type,
+        })
+    }
+
+    pub async fn prepare(&self, query: &str) -> Result<Statement, JkError> {
+        Ok(self.client.prepare(&self.with_schema(query)).await?)
+    }
+
+    pub async fn query<T>(
+        &self,
+        statement: &T,
+        params: &[&(dyn ToSql + Sync)],
+    ) -> Result<Vec<Row>, JkError>
+    where
+        T: ?Sized + ToStatement,
+    {
+        Ok(self.client.query(statement, params).await?)
+    }
+
+    pub async fn query_one<T>(
+        &self,
+        statement: &T,
+        params: &[&(dyn ToSql + Sync)],
+    ) -> Result<Row, JkError>
+    where
+        T: ?Sized + ToStatement,
+    {
+        Ok(self.client.query_one(statement, params).await?)
+    }
+
+    pub async fn query_opt<T>(
+        &self,
+        statement: &T,
+        params: &[&(dyn ToSql + Sync)],
+    ) -> Result<Option<Row>, JkError>
+    where
+        T: ?Sized + ToStatement,
+    {
+        Ok(self.client.query_opt(statement, params).await?)
+    }
+
+    pub async fn init_schema(&self) -> Result<(), JkError> {
+        let schema_exists = query_exists(
+            self,
+            "SELECT schema_name FROM information_schema.schemata WHERE schema_name = $1",
+            &[&self.schema],
+        )
+        .await?;
+
+        if !schema_exists {
+            self.create_schema().await?;
+            self.load_fixtures().await?;
+        }
+
+        Ok(())
+    }
+
+    pub async fn batch_execute(&self, query: &str) -> Result<(), JkError> {
+        Ok(self.client.batch_execute(&self.with_schema(query)).await?)
+    }
+
+    pub async fn drop_schema(&self) -> Result<(), JkError> {
+        let query = include_str!("../migrations/drop_tables.sql");
+        Ok(self.batch_execute(&query).await?)
+    }
+
+    pub async fn create_schema(&self) -> Result<(), JkError> {
+        let query = include_str!("../migrations/create_tables.sql");
+        Ok(self.batch_execute(&query).await?)
+    }
+
+    pub async fn load_fixtures(&self) -> Result<(), JkError> {
+        let query = match self.db_type {
+            DbPoolType::Prod => include_str!("../migrations/fixtures/initial.sql"),
+            DbPoolType::Test => include_str!("../migrations/fixtures/tests.sql"),
+        };
+        Ok(self.batch_execute(&query).await?)
+    }
+
+    fn with_schema(&self, query: &str) -> String {
+        query.replace("{{SCHEMA}}", self.schema)
+    }
+}
+
+pub async fn create_db_pool(db_type: DbPoolType) -> DbPool {
+    let config = crate::config::Config::from_env().unwrap();
+    let pool = DbPool {
+        pool: config.pg.create_pool(tokio_postgres::NoTls).unwrap(),
+        default_schema: match db_type {
+            DbPoolType::Prod => "juhlakalu",
+            DbPoolType::Test => "juhlakalu_test",
+        },
+        db_pool_type: db_type,
+    };
+
+    let client = DbClient::from_pool(pool.clone()).await.unwrap();
+    client.init_schema().await.unwrap();
+
+    pool
 }
 
 pub async fn query<T: FromTokioPostgresRow>(
-    client: &Client,
-    query_str: &str,
+    client: &DbClient,
+    query: &str,
     params: &[&(dyn ToSql + Sync)],
 ) -> Result<Vec<T>, JkError> {
-    let statement = client.prepare(query_str).await?;
+    let statement = client.prepare(&query).await?;
     let result = client
         .query(&statement, &params)
         .await?
@@ -30,52 +157,34 @@ pub async fn query<T: FromTokioPostgresRow>(
 }
 
 pub async fn query_one<T: FromTokioPostgresRow>(
-    client: &Client,
-    query_str: &str,
+    client: &DbClient,
+    query: &str,
     params: &[&(dyn ToSql + Sync)],
 ) -> Result<T, JkError> {
-    let statement = client.prepare(query_str).await?;
+    let statement = client.prepare(&query).await?;
     let row = client.query_one(&statement, &params).await?;
     Ok(T::from_row_ref(&row).unwrap())
 }
 
 pub async fn query_exists(
-    client: &Client,
-    query_str: &str,
+    client: &DbClient,
+    query: &str,
     params: &[&(dyn ToSql + Sync)],
 ) -> Result<bool, JkError> {
-    let statement = client.prepare(query_str).await?;
+    let statement = client.prepare(query).await?;
     let row = client.query_opt(&statement, &params).await?;
     Ok(row.is_some())
 }
 
-pub async fn drop_tables(client: &Client) -> Result<(), JkError> {
-    let query = include_str!("../migrations/drop_tables.sql");
-    client.batch_execute(&query).await?;
-    Ok(())
-}
-
-pub async fn create_tables(client: &Client) -> Result<(), JkError> {
-    let query = include_str!("../migrations/create_tables.sql");
-    client.batch_execute(&query).await?;
-    Ok(())
-}
-
-pub async fn load_fixtures(client: &Client) -> Result<(), JkError> {
-    let query = include_str!("../migrations/fixtures/tests.sql");
-    client.batch_execute(&query).await?;
-    Ok(())
-}
-
 #[allow(dead_code)]
-pub async fn create_test_db_pool() -> Pool {
+pub async fn create_test_db_pool() -> DbPool {
     dotenv::from_filename(".test.env").ok();
-    let pool = create_db_pool().await;
+    let pool = create_db_pool(DbPoolType::Test).await;
 
-    let client = pool.get().await.unwrap();
-    drop_tables(&client).await.unwrap();
-    create_tables(&client).await.unwrap();
-    load_fixtures(&client).await.unwrap();
+    let client = DbClient::from_pool(pool.clone()).await.unwrap();
+    client.drop_schema().await.unwrap();
+    client.create_schema().await.unwrap();
+    client.load_fixtures().await.unwrap();
 
     pool
 }

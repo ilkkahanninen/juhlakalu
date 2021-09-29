@@ -21,7 +21,11 @@ async fn main() -> std::io::Result<()> {
     let config = crate::config::Config::from_env().unwrap();
     let is_test_mode = config.jk_test;
 
-    let db_pool = create_db_pool().await;
+    let db_pool = create_db_pool(match is_test_mode {
+        false => database::DbPoolType::Prod,
+        true => database::DbPoolType::Test,
+    })
+    .await;
 
     HttpServer::new(move || {
         let app = App::new()
