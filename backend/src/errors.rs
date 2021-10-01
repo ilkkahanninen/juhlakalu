@@ -1,4 +1,8 @@
+use std::io::{Error, ErrorKind};
+
 use actix_web::{http::StatusCode, Error as ActixError, HttpResponse, ResponseError};
+use config::ConfigError;
+use deadpool_postgres::config::ConfigError as PoolConfigError;
 use deadpool_postgres::PoolError;
 use derive_more::{Display, From};
 use serde::{Deserialize, Serialize};
@@ -10,9 +14,11 @@ use ts_rs::{export, TS};
 pub enum JkError {
     NotFound,
     Unauthorized,
+    ConfigError(ConfigError),
     PGError(PGError),
     PGMError(PGMError),
     PoolError(PoolError),
+    PoolConfigError(PoolConfigError),
     ActixError(ActixError),
 }
 
@@ -24,6 +30,28 @@ impl JkError {
             JkError::NotFound => ("notFound", "Not found"),
             JkError::Unauthorized => ("unauthorized", "Unauthorized"),
             _ => ("internal", "Internal server error"),
+        }
+    }
+}
+
+impl From<JkError> for Error {
+    fn from(error: JkError) -> Self {
+        match error {
+            JkError::PoolError(_) => Error::new(
+                ErrorKind::ConnectionRefused,
+                format!(
+                    "Could not initialize a database pool (probably invalid host or credentials, or Postgres is not running)",
+                ),
+            ),
+            JkError::ConfigError(error) => Error::new(
+                ErrorKind::InvalidData,
+                format!("Invalid configuration: {}", error.to_string()),
+            ),
+            JkError::ActixError(error) => Error::new(
+                ErrorKind::Other,
+                format!("Actix error: {}", error.to_string()),
+            ),
+            _ => Error::new(ErrorKind::Other, "Unexpected error"),
         }
     }
 }

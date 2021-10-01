@@ -1,6 +1,8 @@
 use serde::Deserialize;
 
-pub use ::config::ConfigError;
+pub use config::ConfigError;
+
+use crate::errors::JkError;
 
 #[derive(Deserialize)]
 pub struct Config {
@@ -10,11 +12,11 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn from_env() -> Result<Self, ConfigError> {
+    pub fn from_env() -> Result<Self, JkError> {
         let mut cfg = ::config::Config::new();
         cfg.set_default("server_addr", "127.0.0.1:8080")?;
         cfg.set_default("jk_test", false)?;
         cfg.merge(::config::Environment::new())?;
-        cfg.try_into()
+        Ok(cfg.try_into()?)
     }
 }

@@ -18,14 +18,17 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
     dotenv().ok();
 
-    let config = crate::config::Config::from_env().unwrap();
+    let config = crate::config::Config::from_env()?;
+
     let is_test_mode = config.jk_test;
 
     let db_pool = create_db_pool(match is_test_mode {
         false => database::DbPoolType::Prod,
         true => database::DbPoolType::Test,
     })
-    .await;
+    .await?;
+
+    println!("Starting server: http://{}", &config.server_addr);
 
     HttpServer::new(move || {
         let app = App::new()
@@ -47,7 +50,7 @@ async fn main() -> std::io::Result<()> {
         app.configure(configure_static_file_sharing)
             .default_service(web::to(|| JkError::NotFound.error_response()))
     })
-    .bind(config.server_addr)?
+    .bind(&config.server_addr)?
     .run()
     .await
 }

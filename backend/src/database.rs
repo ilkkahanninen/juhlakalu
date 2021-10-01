@@ -124,10 +124,10 @@ impl DbClient {
     }
 }
 
-pub async fn create_db_pool(db_type: DbPoolType) -> DbPool {
-    let config = crate::config::Config::from_env().unwrap();
+pub async fn create_db_pool(db_type: DbPoolType) -> Result<DbPool, JkError> {
+    let config = crate::config::Config::from_env()?;
     let pool = DbPool {
-        pool: config.pg.create_pool(tokio_postgres::NoTls).unwrap(),
+        pool: config.pg.create_pool(tokio_postgres::NoTls)?,
         default_schema: match db_type {
             DbPoolType::Prod => "juhlakalu",
             DbPoolType::Test => "juhlakalu_test",
@@ -135,10 +135,10 @@ pub async fn create_db_pool(db_type: DbPoolType) -> DbPool {
         db_pool_type: db_type,
     };
 
-    let client = DbClient::from_pool(pool.clone()).await.unwrap();
-    client.init_schema().await.unwrap();
+    let client = DbClient::from_pool(pool.clone()).await?;
+    client.init_schema().await?;
 
-    pool
+    Ok(pool)
 }
 
 pub async fn query<T: FromTokioPostgresRow>(
@@ -151,7 +151,7 @@ pub async fn query<T: FromTokioPostgresRow>(
         .query(&statement, &params)
         .await?
         .iter()
-        .map(|row| T::from_row_ref(row).unwrap())
+        .map(|row| T::from_row_ref(row).expect("Query fields and struct match"))
         .collect::<Vec<T>>();
     Ok(result)
 }
@@ -163,7 +163,7 @@ pub async fn query_one<T: FromTokioPostgresRow>(
 ) -> Result<T, JkError> {
     let statement = client.prepare(&query).await?;
     let row = client.query_one(&statement, &params).await?;
-    Ok(T::from_row_ref(&row).unwrap())
+    Ok(T::from_row_ref(&row)?)
 }
 
 pub async fn query_exists(
@@ -177,14 +177,14 @@ pub async fn query_exists(
 }
 
 #[allow(dead_code)]
-pub async fn create_test_db_pool() -> DbPool {
+pub async fn create_test_db_pool() -> Result<DbPool, JkError> {
     dotenv::from_filename(".test.env").ok();
-    let pool = create_db_pool(DbPoolType::Test).await;
+    let pool = create_db_pool(DbPoolType::Test).await?;
 
-    let client = DbClient::from_pool(pool.clone()).await.unwrap();
-    client.drop_schema().await.unwrap();
-    client.create_schema().await.unwrap();
-    client.load_fixtures().await.unwrap();
+    let client = DbClient::from_pool(pool.clone()).await?;
+    client.drop_schema().await?;
+    client.create_schema().await?;
+    client.load_fixtures().await?;
 
-    pool
+    Ok(pool)
 }
