@@ -18,6 +18,7 @@ dev:
 .PHONY: test
 test:
 	cargo test
+	yarn lint
 
 .PHONY: frontend
 frontend:

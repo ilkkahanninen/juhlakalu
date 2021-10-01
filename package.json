@@ -5,9 +5,14 @@
   "license": "MIT",
   "scripts": {
     "start": "parcel watch frontend/src/index.html --dist-dir frontend/target --no-hmr",
-    "build": "parcel build frontend/src/index.html --dist-dir frontend/target"
+    "build": "parcel build frontend/src/index.html --dist-dir frontend/target",
+    "lint": "eslint ./frontend --ext .ts --ext .tsx"
   },
   "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.32.0",
+    "@typescript-eslint/parser": "^4.32.0",
+    "eslint": "^7.32.0",
+    "eslint-plugin-react-hooks": "^4.2.0",
     "fp-ts": "^2.11.3",
     "monocle-ts": "^2.3.11",
     "react": "^17.0.2",

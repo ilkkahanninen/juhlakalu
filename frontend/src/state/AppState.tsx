@@ -3,10 +3,17 @@ import { pipe } from "fp-ts/function";
 import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
 import { Lens } from "monocle-ts";
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { ErrorMessage } from "../rust-types/ErrorMessage";
 import { User } from "../rust-types/User";
 import { AsyncState, initialAsyncState } from "./asyncState";
+import { useOnMount } from "./useOnMount";
 
 // State structure and initial values
 
@@ -72,18 +79,20 @@ export const AppStateProvider = (props: AppStateProviderProps) => {
 
   const dispatch: AppStateDispatchFn = setState;
 
-  const dispatchTask: AppStateDispatchTaskFn = async (task, map) =>
-    pipe(await task(), map, dispatch);
+  const dispatchTask: AppStateDispatchTaskFn = useCallback(
+    async (task, map) => pipe(await task(), map, dispatch),
+    [dispatch]
+  );
 
-  const dispatchTaskEither: AppStateDispatchTaskEitherFn = async (
-    task,
-    mapLeft,
-    mapRight
-  ) => pipe(await task(), E.match(mapLeft, mapRight), dispatch);
+  const dispatchTaskEither: AppStateDispatchTaskEitherFn = useCallback(
+    async (task, mapLeft, mapRight) =>
+      pipe(await task(), E.match(mapLeft, mapRight), dispatch),
+    [dispatch]
+  );
 
   const value = useMemo(
     () => ({ state, dispatch, dispatchTask, dispatchTaskEither }),
-    [state]
+    [dispatch, dispatchTask, dispatchTaskEither, state]
   );
 
   return (
@@ -97,7 +106,7 @@ export const useAppState = () => useContext(AppStateContext);
 
 export const useResetState = <T,>(lens: Lens<AppState, T>, initialState: T) => {
   const { dispatch } = useAppState();
-  useEffect(() => {
+  useOnMount(() => {
     dispatch(lens.set(initialState));
-  }, []);
+  });
 };
