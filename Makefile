@@ -19,6 +19,7 @@ dev:
 test:
 	cargo test
 	yarn lint
+	yarn dry-build
 
 .PHONY: frontend
 frontend:

@@ -1,5 +1,6 @@
 /target
 .env
+.test.env
 .parcel-cache/
 /frontend/target/
 /node_modules/

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "parcel watch frontend/src/index.html --dist-dir frontend/target --no-hmr",
     "build": "parcel build frontend/src/index.html --dist-dir frontend/target",
-    "lint": "eslint ./frontend --ext .ts --ext .tsx"
+    "lint": "eslint ./frontend --ext .ts --ext .tsx",
+    "dry-build": "tsc --noEmit"
   },
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^4.32.0",

@@ -16,11 +16,12 @@ export type TextInputProps = {
 export type TextInputType = "text" | "password";
 
 export const TextInput = (props: TextInputProps) => {
+  const onChangeProp = props.onChange;
   const onChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      props.onChange(event.target.value);
+      onChangeProp(event.target.value);
     },
-    [props.onChange]
+    [onChangeProp]
   );
 
   return (

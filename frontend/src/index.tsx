@@ -8,6 +8,7 @@ import { MainView } from "./views/main/MainView";
 
 import "./style/normalize.css";
 import "./style/typography.less";
+import { useOnMount } from "./state/useOnMount";
 
 const App = () => (
   <AppStateProvider>
@@ -21,11 +22,11 @@ const AuthCheck = () => {
   const { state, dispatchTaskEither } = useAppState();
   const [isReady, setReady] = useState(false);
 
-  useEffect(() => {
+  useOnMount(() => {
     dispatchTaskEither(initialAuthCheck, errorL.set, userL.set).then(() =>
       setReady(true)
     );
-  }, []);
+  });
 
   return isReady ? state.user ? <Routing /> : <LoginView /> : null;
 };

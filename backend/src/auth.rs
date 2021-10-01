@@ -110,7 +110,7 @@ mod tests {
     }
 
     async fn run_login_test(credentials: Credentials) -> actix_web::dev::ServiceResponse {
-        let pool = create_test_db_pool().await;
+        let pool = create_test_db_pool().await.unwrap();
         let mut app = test::init_service(
             App::new()
                 .data(pool)

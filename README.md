@@ -34,6 +34,13 @@ Backend and frontend code both trigger recompiling. Hot-reload is disabled at th
 
 You can install and run Postgres normally. If you have Docker installed you can also start it by running `make docker-db`
 
+## Running tests
+
+1. Copy `.dev.example` to `.test.dev` and edit its contents to match your database and desired port.
+2. Run `make test`
+
+Juhlakalu runs mostly integration tests which means Postgres needs to be running during the tests.
+
 ## License
 
 MIT
