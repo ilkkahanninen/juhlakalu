@@ -9,6 +9,7 @@ export const RaisedButton = plainComponent(
 );
 
 export type FormSubmitButtonProps = {
+  id?: string;
   children: string;
   className?: string;
   disabled?: boolean;

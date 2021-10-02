@@ -5,9 +5,13 @@ mod errors;
 mod tests;
 mod users;
 
-use actix_files::Files;
+use actix_files::{Files, NamedFile};
 use actix_session::CookieSession;
-use actix_web::{middleware::Logger, web, App, HttpServer, ResponseError};
+use actix_web::{
+    dev::{ServiceRequest, ServiceResponse},
+    middleware::Logger,
+    web, App, HttpServer, ResponseError,
+};
 use database::create_db_pool;
 use dotenv::dotenv;
 use errors::JkError;
@@ -64,5 +68,16 @@ fn configure_api(cfg: &mut web::ServiceConfig) {
 }
 
 fn configure_static_file_sharing(cfg: &mut web::ServiceConfig) {
-    cfg.service(Files::new("/", "./frontend/target").index_file("index.html"));
+    cfg.service(
+        Files::new("/", "./frontend/target")
+            .index_file("index.html")
+            .default_handler(|req: ServiceRequest| {
+                let (http_req, _payload) = req.into_parts();
+                async {
+                    let response = NamedFile::open("./frontend/target/index.html")?
+                        .into_response(&http_req)?;
+                    Ok(ServiceResponse::new(http_req, response))
+                }
+            }),
+    );
 }

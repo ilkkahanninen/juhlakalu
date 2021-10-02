@@ -5,6 +5,7 @@ import { joinClassNames } from "../../utils/strings";
 import "./TextInput.less";
 
 export type TextInputProps = {
+  id?: string;
   value: string;
   onChange: (s: string) => void;
   disabled?: boolean;
@@ -28,6 +29,7 @@ export const TextInput = (props: TextInputProps) => {
     <label className="textinput__container">
       {props.label && <span className="textinput__label">{props.label}</span>}
       <input
+        id={props.id}
         type={props.type || "text"}
         value={props.value}
         onChange={onChange}
@@ -39,6 +41,7 @@ export const TextInput = (props: TextInputProps) => {
 };
 
 export type FormTextInputProps<S> = {
+  id?: string;
   form: [S, React.Dispatch<React.SetStateAction<S>>];
   lens: Lens<S, string>;
   label?: string;

@@ -16,11 +16,20 @@ dev:
 	yarn start & cargo watch -x 'run --bin juhlakalu'
 
 .PHONY: test
-test:
+test: test-backend test-frontend test-e2e
+
+.PHONY: test-backend
+test-backend:
 	cargo test
+
+.PHONY: test-frontend
+test-frontend:
 	yarn lint
 	yarn dry-build
-	./frontend/testUtils/run.sh
+
+.PHONY: test-e2e
+test-e2e: frontend
+	./frontend/e2e-tests/run.sh
 
 .PHONY: frontend
 frontend:

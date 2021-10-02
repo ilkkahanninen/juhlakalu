@@ -46,18 +46,27 @@ export const LoginView = () => {
 
   return (
     <ViewContainer>
-      <Headline>Login</Headline>
-      <ErrorMessage>{error?.message}</ErrorMessage>
+      <Headline id="login_title">Login</Headline>
+      <ErrorMessage id="login_error">{error?.message}</ErrorMessage>
       <Form onSubmit={submit}>
-        <FormTextInput lens={usernameL} label="User name" form={form} />
         <FormTextInput
+          id="login_username"
+          lens={usernameL}
+          label="User name"
+          form={form}
+        />
+        <FormTextInput
+          id="login_password"
           lens={passwordL}
           label="Password"
           form={form}
           type="password"
         />
         <ButtonGroup>
-          <FormSubmitButton disabled={isLoading || !formFilled}>
+          <FormSubmitButton
+            id="login_submit"
+            disabled={isLoading || !formFilled}
+          >
             Login
           </FormSubmitButton>
         </ButtonGroup>

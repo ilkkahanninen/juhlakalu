@@ -2,7 +2,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { ErrorMessage } from "../rust-types/ErrorMessage";
-import fetch from "isomorphic-unfetch";
+import "isomorphic-unfetch";
 
 export type Method = "GET" | "POST";
 

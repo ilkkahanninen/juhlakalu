@@ -9,6 +9,7 @@ import { MainView } from "./views/main/MainView";
 import "./style/normalize.css";
 import "./style/typography.less";
 import { useOnMount } from "./state/useOnMount";
+import { LogoutHandler } from "./views/login/LogoutHandler";
 
 const App = () => (
   <AppStateProvider>
@@ -34,8 +35,11 @@ const AuthCheck = () => {
 const Routing = () => (
   <Router>
     <Switch>
-      <Route path="/">
+      <Route exact path="/">
         <MainView />
+      </Route>
+      <Route path="/logout">
+        <LogoutHandler />
       </Route>
       <Route>404 Not found</Route>
     </Switch>

@@ -13,7 +13,7 @@ export const MainView = () => {
 
   return (
     <ViewContainer>
-      <Headline>Hello, {state.user?.username}!</Headline>
+      <Headline id="main_title">Hello, {state.user?.username}!</Headline>
       <RaisedButton onClick={logoutUser}>Logout</RaisedButton>
     </ViewContainer>
   );
