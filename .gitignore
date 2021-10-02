@@ -5,3 +5,4 @@
 /frontend/target/
 /node_modules/
 /release/
+yarn-error.log
