@@ -2,18 +2,22 @@ import { pipe } from "fp-ts/lib/function";
 import * as E from "fp-ts/Either";
 import * as TE from "fp-ts/TaskEither";
 import { ErrorMessage } from "../rust-types/ErrorMessage";
+import fetch from "isomorphic-unfetch";
 
 export type Method = "GET" | "POST";
 
-export const routeToUrl = (route: string) =>
+export type Router = (route: string) => string;
+
+export const defaultRouteToUrl: Router = (route: string) =>
   `${location.protocol}//${location.host}/api${route}`;
 
-export const fetchJson =
+export const getFetchJson =
+  (router: (route: string) => string = defaultRouteToUrl) =>
   <T, S extends object | undefined>(method: Method, route: string) =>
   (body: T): TE.TaskEither<ErrorMessage, S> =>
     pipe(
       TE.tryCatch(async () => {
-        const response = await runFetch(method, route, body);
+        const response = await runFetch(router, method, route, body);
         return pipe(
           await parseJson<S>(response),
           errorsToLeft<S>(response),
@@ -24,11 +28,12 @@ export const fetchJson =
     );
 
 const runFetch = <T>(
+  router: Router,
   method: Method,
   route: string,
   body: T
 ): Promise<Response> =>
-  fetch(routeToUrl(route), {
+  fetch(router(route), {
     method,
     body: body && JSON.stringify(body),
     headers: body && {

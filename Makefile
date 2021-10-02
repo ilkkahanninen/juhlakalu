@@ -20,6 +20,7 @@ test:
 	cargo test
 	yarn lint
 	yarn dry-build
+	./frontend/testUtils/run.sh
 
 .PHONY: frontend
 frontend:

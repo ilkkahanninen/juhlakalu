@@ -14,7 +14,7 @@ pub struct Config {
 impl Config {
     pub fn from_env() -> Result<Self, JkError> {
         let mut cfg = ::config::Config::new();
-        cfg.set_default("server_addr", "127.0.0.1:8080")?;
+        cfg.set_default("server_addr", "127.0.0.1:8000")?;
         cfg.set_default("jk_test", false)?;
         cfg.merge(::config::Environment::new())?;
         Ok(cfg.try_into()?)

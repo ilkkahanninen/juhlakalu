@@ -7,7 +7,8 @@
     "start": "parcel watch frontend/src/index.html --dist-dir frontend/target --no-hmr",
     "build": "parcel build frontend/src/index.html --dist-dir frontend/target",
     "lint": "eslint ./frontend --ext .ts --ext .tsx",
-    "dry-build": "tsc --noEmit"
+    "dry-build": "tsc --noEmit",
+    "test": "jest"
   },
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^4.32.0",
@@ -15,6 +16,8 @@
     "eslint": "^7.32.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "fp-ts": "^2.11.3",
+    "isomorphic-unfetch": "^3.1.0",
+    "jest": "^27.2.4",
     "monocle-ts": "^2.3.11",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -22,10 +25,13 @@
   },
   "devDependencies": {
     "@parcel/transformer-less": "2.0.0-rc.0",
+    "@types/jest": "^27.0.2",
     "@types/react": "^17.0.24",
     "@types/react-dom": "^17.0.9",
     "@types/react-router-dom": "^5.3.0",
+    "node-fetch": "^3.0.0",
     "parcel": "^2.0.0-rc.0",
+    "ts-jest": "^27.0.5",
     "typescript": "^4.4.3"
   }
 }
