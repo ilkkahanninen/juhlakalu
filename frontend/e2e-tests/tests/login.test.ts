@@ -1,4 +1,4 @@
-import { getElementText, getUrl, resetAll } from "../utils";
+import { getElementText, getUrl, logout, resetAll } from "../utils";
 import * as Login from "./views/Login";
 import * as Signup from "./views/Signup";
 import * as Main from "./views/Main";
@@ -44,5 +44,22 @@ describe("Authentication", () => {
     await Signup.submit();
 
     expect(await Signup.getError()).toEqual("User name already exists");
+  });
+
+  test("Login with new user works", async () => {
+    await Signup.open();
+    await Signup.typeUsername("john");
+    await Signup.typePassword("hunter2");
+    await Signup.typePasswordConfirm("hunter2");
+    await Signup.submit();
+
+    await logout();
+
+    await Login.open();
+    await Login.typeUsername("john");
+    await Login.typePassword("hunter2");
+    await Login.submit();
+
+    expect(await Main.getTitle()).toEqual(`Hello, john!`);
   });
 });

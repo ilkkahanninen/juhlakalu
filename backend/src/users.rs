@@ -59,8 +59,11 @@ pub async fn get_user(client: &DbClient, username: &str) -> Result<User, JkError
           users.username,
           users.email,
           users.phone,
-          array_agg(user_roles.role) AS roles
-        FROM
+          COALESCE(
+            array_agg(user_roles.role) FILTER (WHERE user_roles.role IS NOT NULL),
+            ARRAY[]::text[]
+          ) AS roles
+      FROM
           {{SCHEMA}}.users
           LEFT JOIN {{SCHEMA}}.user_roles ON user_roles.username = users.username
         WHERE
