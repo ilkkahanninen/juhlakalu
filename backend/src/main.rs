@@ -12,9 +12,10 @@ use actix_web::{
     middleware::Logger,
     web, App, HttpServer, ResponseError,
 };
-use database::create_db_pool;
 use dotenv::dotenv;
 use errors::JkError;
+
+use crate::database::DbPool;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -26,7 +27,7 @@ async fn main() -> std::io::Result<()> {
 
     let is_test_mode = config.jk_test;
 
-    let db_pool = create_db_pool(match is_test_mode {
+    let db_pool = DbPool::new(match is_test_mode {
         false => database::DbPoolType::Prod,
         true => database::DbPoolType::Test,
     })

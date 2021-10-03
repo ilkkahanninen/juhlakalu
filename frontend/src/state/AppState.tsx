@@ -21,14 +21,14 @@ export type AppState = {
   user?: User;
   error?: ErrorMessage;
   loginView: AsyncState;
+  signupView: AsyncState;
 };
 
 export const initialState: AppState = {
   user: undefined,
   error: undefined,
-  loginView: {
-    ...initialAsyncState,
-  },
+  loginView: initialAsyncState,
+  signupView: initialAsyncState,
 };
 
 // Lenses
@@ -42,6 +42,10 @@ export const errorL = rootProp("error");
 export const loginViewL = rootProp("loginView");
 export const loginErrorL = rootPath(["loginView", "error"]);
 export const loginIsLoadingL = rootPath(["loginView", "isLoading"]);
+
+export const signupViewL = rootProp("signupView");
+export const signupErrorL = rootPath(["signupView", "error"]);
+export const signupIsLoadingL = rootPath(["signupView", "isLoading"]);
 
 // React context
 

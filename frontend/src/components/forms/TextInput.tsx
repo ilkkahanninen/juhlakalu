@@ -1,7 +1,7 @@
 import { flow } from "fp-ts/lib/function";
 import { Lens } from "monocle-ts";
 import React, { useCallback } from "react";
-import { joinClassNames } from "../../utils/strings";
+import { emptyAsNull, joinClassNames } from "../../utils/strings";
 import "./TextInput.less";
 
 export type TextInputProps = {
@@ -40,13 +40,16 @@ export const TextInput = (props: TextInputProps) => {
   );
 };
 
-export type FormTextInputProps<S> = {
+type BaseFormTextInputProps<S> = {
   id?: string;
   form: [S, React.Dispatch<React.SetStateAction<S>>];
-  lens: Lens<S, string>;
   label?: string;
   disabled?: boolean;
   type?: TextInputType;
+};
+
+export type FormTextInputProps<S> = BaseFormTextInputProps<S> & {
+  lens: Lens<S, string>;
 };
 
 export const FormTextInput = <S,>({
@@ -58,5 +61,21 @@ export const FormTextInput = <S,>({
     {...props}
     value={lens.get(state)}
     onChange={flow(lens.set, setState)}
+  />
+);
+
+export type FormNullableTextInputProps<S> = BaseFormTextInputProps<S> & {
+  lens: Lens<S, string | null>;
+};
+
+export const FormNullableTextInput = <S,>({
+  lens,
+  form: [state, setState],
+  ...props
+}: FormNullableTextInputProps<S>) => (
+  <TextInput
+    {...props}
+    value={lens.get(state) || ""}
+    onChange={flow(emptyAsNull, lens.set, setState)}
   />
 );

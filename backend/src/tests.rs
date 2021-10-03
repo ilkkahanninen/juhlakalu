@@ -7,7 +7,7 @@ use crate::{
 
 #[get("/reset")]
 pub async fn reset_fixtures(db_pool: web::Data<DbPool>) -> Result<HttpResponse, JkError> {
-    let client = DbClient::from_data(db_pool).await?;
+    let client = DbClient::from(&db_pool).await?;
     client.drop_schema().await?;
     client.create_schema().await?;
     client.load_fixtures().await?;

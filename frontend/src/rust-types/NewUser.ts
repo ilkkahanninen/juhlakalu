@@ -1,6 +1,6 @@
-export interface User {
+export interface NewUser {
   username: string;
   email: string | null;
   phone: string | null;
-  roles: string[];
+  password: string;
 }

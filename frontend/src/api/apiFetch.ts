@@ -49,7 +49,7 @@ const parseJson = <S extends object | undefined>(response: Response) =>
     },
     () =>
       ({
-        error: "invalidJson",
+        error: "Internal",
         message: "Server sent an invalid JSON response",
       } as ErrorMessage)
   )();
@@ -61,6 +61,6 @@ const errorsToLeft = <S extends object | undefined>(response: Response) =>
 
 const asErrorMessage = (err: any): ErrorMessage =>
   ({
-    error: "error",
+    error: "Internal",
     message: err?.toString() || "Unexpected fetch error",
   } as ErrorMessage);

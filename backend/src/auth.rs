@@ -2,7 +2,7 @@ use actix_session::Session;
 use actix_web::{get, post, web, HttpResponse, Responder};
 use ts_rs::{export, TS};
 
-use crate::database::{query_exists, DbClient, DbPool};
+use crate::database::{DbClient, DbPool, DbTransaction};
 use crate::errors::JkError;
 use crate::users::{get_user, User};
 use serde::{Deserialize, Serialize};
@@ -18,9 +18,9 @@ export! {
 }
 
 async fn validate_credentials(client: &DbClient, credentials: &Credentials) -> Result<(), JkError> {
-    let result = query_exists(
-        client,
-        "
+    let result = client
+        .exists(
+            "
           SELECT
             *
           FROM
@@ -29,9 +29,9 @@ async fn validate_credentials(client: &DbClient, credentials: &Credentials) -> R
             username = $1
             AND password_hash = crypt($2, password_hash)
         ",
-        &[&credentials.username, &credentials.password],
-    )
-    .await;
+            &[&credentials.username, &credentials.password],
+        )
+        .await;
 
     match result {
         Ok(true) => Ok(()),
@@ -46,16 +46,44 @@ pub fn validate_admin_role(session: &Session) -> Result<(), JkError> {
     }
 }
 
+pub fn set_user_session(session: &Session, user: &User) -> Result<(), JkError> {
+    Ok(session.set("user", &user)?)
+}
+
+// TODO: Implement Queryable trait to database and use it here instead
+pub async fn set_user_password(
+    transaction: &DbTransaction<'_>,
+    username: &str,
+    password: &str,
+) -> Result<(), JkError> {
+    transaction
+        .execute(
+            "
+            INSERT INTO {{SCHEMA}}.user_passwords (
+                username,
+                password_hash
+            ) VALUES ($1, crypt($2, gen_salt('bf', 4)))
+            ON CONFLICT (username)
+            DO UPDATE SET
+                password_hash = EXCLUDED.password_hash
+            ",
+            &[&username, &password],
+        )
+        .await?;
+
+    Ok(())
+}
+
 #[post("/login")]
 async fn login_route(
     credentials: web::Json<Credentials>,
     db_pool: web::Data<DbPool>,
     session: Session,
 ) -> Result<impl Responder, JkError> {
-    let client = DbClient::from_data(db_pool).await?;
+    let client = DbClient::from(&db_pool).await?;
     validate_credentials(&client, &credentials).await?;
     let user = get_user(&client, &credentials.username).await?;
-    session.set("user", &user)?;
+    set_user_session(&session, &user)?;
     Ok(HttpResponse::Ok().json(user))
 }
 
@@ -82,7 +110,7 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
 
 #[cfg(test)]
 mod tests {
-    use crate::database::create_test_db_pool;
+    use crate::database::DbPool;
 
     use super::*;
     use actix_web::{http::StatusCode, test, App};
@@ -110,7 +138,7 @@ mod tests {
     }
 
     async fn run_login_test(credentials: Credentials) -> actix_web::dev::ServiceResponse {
-        let pool = create_test_db_pool().await.unwrap();
+        let pool = DbPool::new_test().await.unwrap();
         let mut app = test::init_service(
             App::new()
                 .data(pool)

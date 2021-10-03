@@ -1,5 +1,7 @@
+import { ErrorCode } from "./ErrorCode";
+
 export interface ErrorMessage {
   status_code: number;
-  error: string;
+  error: ErrorCode;
   message: string;
 }

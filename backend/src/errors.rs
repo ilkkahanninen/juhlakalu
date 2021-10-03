@@ -14,6 +14,7 @@ use ts_rs::{export, TS};
 pub enum JkError {
     NotFound,
     Unauthorized,
+    AlreadyExists,
     ConfigError(ConfigError),
     PGError(PGError),
     PGMError(PGMError),
@@ -25,12 +26,21 @@ pub enum JkError {
 impl std::error::Error for JkError {}
 
 impl JkError {
-    pub fn error_and_message(&self) -> (&'static str, &'static str) {
+    pub fn errorcode(&self) -> ErrorCode {
         match self {
-            JkError::NotFound => ("notFound", "Not found"),
-            JkError::Unauthorized => ("unauthorized", "Unauthorized"),
-            _ => ("internal", "Internal server error"),
+            JkError::NotFound => ErrorCode::NotFound,
+            JkError::Unauthorized => ErrorCode::Unauthorized,
+            JkError::PGError(error) if Self::is_unique_constraint_violation(error) => {
+                ErrorCode::AlreadyExists
+            }
+            _ => ErrorCode::Internal,
         }
+    }
+
+    pub fn is_unique_constraint_violation(error: &PGError) -> bool {
+        error
+            .to_string()
+            .contains("duplicate key value violates unique constrain")
     }
 }
 
@@ -59,24 +69,50 @@ impl From<JkError> for Error {
 #[derive(Serialize, Deserialize, TS)]
 pub struct ErrorMessage {
     status_code: u16,
-    error: &'static str,
+    error: ErrorCode,
     message: &'static str,
 }
 
-export! { ErrorMessage => "frontend/src/rust-types/ErrorMessage.ts" }
+#[derive(Serialize, Deserialize, TS)]
+pub enum ErrorCode {
+    NotFound,
+    Unauthorized,
+    AlreadyExists,
+    Internal,
+}
+
+impl ErrorCode {
+    fn message(&self) -> &'static str {
+        match self {
+            ErrorCode::NotFound => "Not found",
+            ErrorCode::Unauthorized => "Unauthorized",
+            ErrorCode::AlreadyExists => "Already exists",
+            ErrorCode::Internal => "Internal server error",
+        }
+    }
+}
+
+export! {
+   ErrorMessage => "frontend/src/rust-types/ErrorMessage.ts",
+   ErrorCode => "frontend/src/rust-types/ErrorCode.ts",
+}
 
 impl ResponseError for JkError {
     fn status_code(&self) -> StatusCode {
         match self {
             JkError::NotFound => StatusCode::NOT_FOUND,
             JkError::Unauthorized => StatusCode::UNAUTHORIZED,
+            JkError::PGError(error) if Self::is_unique_constraint_violation(error) => {
+                StatusCode::CONFLICT
+            }
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
     fn error_response(&self) -> HttpResponse {
         let status_code = self.status_code();
-        let (error, message) = self.error_and_message();
+        let error = self.errorcode();
+        let message = error.message();
 
         HttpResponse::build(status_code).json(ErrorMessage {
             status_code: status_code.as_u16(),
