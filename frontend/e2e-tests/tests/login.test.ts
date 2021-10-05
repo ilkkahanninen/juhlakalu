@@ -18,7 +18,7 @@ describe("Authentication", () => {
   test("Login with invalid credentials fails", async () => {
     await Login.open();
     await Login.typeUsername("admin");
-    await Login.typePassword("xxx");
+    await Login.typePassword("xxxxxx");
     await Login.submit();
 
     expect(await Login.getError()).toEqual("Unauthorized");

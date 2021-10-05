@@ -1,6 +1,6 @@
 import { Lens } from "monocle-ts";
-import React, { useState } from "react";
-import { login, signup } from "../../api/api";
+import React from "react";
+import { signup } from "../../api/api";
 import { ButtonGroup, FormSubmitButton } from "../../components/atoms/buttons";
 import { ErrorMessage } from "../../components/atoms/messages";
 import { Headline } from "../../components/atoms/typography";
@@ -19,47 +19,55 @@ import {
   userL,
 } from "../../state/AppState";
 import { startedAsyncState } from "../../state/asyncState";
+import * as F from "../../utils/forms";
+import { useForm } from "../../utils/useForm";
+import * as V from "../../utils/validators";
 
-const usernameL = Lens.fromProp<SignupFields>()("username");
-const emailL = Lens.fromProp<SignupFields>()("email");
-const phoneL = Lens.fromProp<SignupFields>()("phone");
-const passwordL = Lens.fromProp<SignupFields>()("password");
-const passwordConfirmL = Lens.fromProp<SignupFields>()("passwordConfirm");
-
-type SignupFields = NewUser & {
+type Signup = NewUser & {
   passwordConfirm: string;
 };
+
+type SignupForm = F.AsForm<Signup>;
+
+const emptyForm: Signup = {
+  username: "",
+  email: null,
+  phone: null,
+  password: "",
+  passwordConfirm: "",
+};
+
+const signupFormLens = Lens.fromProp<SignupForm>();
+const usernameL = signupFormLens("username");
+const emailL = signupFormLens("email");
+const phoneL = signupFormLens("phone");
+const passwordL = signupFormLens("password");
+const passwordConfirmL = signupFormLens("passwordConfirm");
+
+const signupValidations = F.formValidator(
+  F.field(usernameL, V.username),
+  F.field(passwordL, V.password),
+  F.fieldCompare(passwordConfirmL, passwordL, V.passwordsMatch)
+);
 
 export const SignupForm = () => {
   const { state, dispatch, dispatchTaskEither } = useAppState();
   useResetState(signupViewL, { error: undefined, isLoading: false });
 
-  const form = useState<SignupFields>({
-    username: "",
-    email: "",
-    phone: "",
-    password: "",
-    passwordConfirm: "",
-  });
+  const form = useForm(emptyForm, signupValidations);
 
   const submit = async () => {
     dispatch(signupViewL.set(startedAsyncState));
-    await dispatchTaskEither(signup(form[0]), signupErrorL.set, userL.set);
+    await dispatchTaskEither(
+      signup(form.asData()),
+      signupErrorL.set,
+      userL.set
+    );
     dispatch(signupIsLoadingL.set(false));
   };
 
   const error = signupErrorL.get(state);
   const isLoading = signupIsLoadingL.get(state);
-  const formFilled = Boolean(
-    form[0].username &&
-      form[0].password &&
-      form[0].password === form[0].passwordConfirm
-  );
-  const passwordMismatch = Boolean(
-    form[0].password &&
-      form[0].passwordConfirm &&
-      form[0].password !== form[0].passwordConfirm
-  );
 
   return (
     <Form onSubmit={submit}>
@@ -78,6 +86,7 @@ export const SignupForm = () => {
       <FormNullableTextInput
         id="signup_email"
         lens={emailL}
+        type="email"
         label="Email (optional)"
         form={form}
       />
@@ -101,15 +110,10 @@ export const SignupForm = () => {
         form={form}
         type="password"
       />
-      {passwordMismatch && (
-        <ErrorMessage id="signup_password_error">
-          Passwords do not match
-        </ErrorMessage>
-      )}
       <ButtonGroup>
         <FormSubmitButton
           id="signup_submit"
-          disabled={isLoading || !formFilled}
+          disabled={isLoading || form.hasErrors}
         >
           Sign up
         </FormSubmitButton>

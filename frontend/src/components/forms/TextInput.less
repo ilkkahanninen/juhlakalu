@@ -1,5 +1,6 @@
 @import "../../style/size.less";
 @import "../../style/typography.less";
+@import "../../style/colors.less";
 
 .textinput__container {
   display: block;
@@ -25,5 +26,15 @@
     border-radius: 4px;
     padding: 12px 12px;
     width: 100%;
+
+    &.textinput__input--error {
+      border-color: @color-error;
+      background-color: #fee;
+    }
+  }
+
+  .textinput__error {
+    font-size: @font-size-secondary;
+    color: @color-error;
   }
 }
