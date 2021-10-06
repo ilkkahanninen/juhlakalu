@@ -1,5 +1,6 @@
+import { flow } from "fp-ts/lib/function";
 import { Lens } from "monocle-ts";
-import React from "react";
+import React, { useCallback } from "react";
 import { login } from "../../api/api";
 import { ButtonGroup, FormSubmitButton } from "../../components/atoms/buttons";
 import { ErrorMessage } from "../../components/atoms/messages";
@@ -7,15 +8,13 @@ import { Headline } from "../../components/atoms/typography";
 import { Form } from "../../components/forms/Form";
 import { FormTextInput } from "../../components/forms/TextInput";
 import { Credentials } from "../../rust-types/Credentials";
+import { User } from "../../rust-types/User";
+import { useAppState, userL } from "../../state/AppState";
 import {
-  loginErrorL,
-  loginIsLoadingL,
-  loginViewL,
-  useAppState,
-  useResetState,
-  userL,
-} from "../../state/AppState";
-import { startedAsyncState } from "../../state/asyncState";
+  errorMessage,
+  isProcessing,
+  useTaskState,
+} from "../../state/TaskState";
 import * as F from "../../utils/forms";
 import { useForm } from "../../utils/useForm";
 import * as V from "../../utils/validators";
@@ -37,24 +36,22 @@ const validateLogin = F.formValidator(
 );
 
 export const LoginForm = () => {
-  const { state, dispatch, dispatchTaskEither } = useAppState();
-  useResetState(loginViewL, { error: undefined, isLoading: false });
-
+  const appState = useAppState();
+  const loginTask = useTaskState<User>();
   const form = useForm(emptyForm, validateLogin);
 
-  const submit = async () => {
-    dispatch(loginViewL.set(startedAsyncState));
-    await dispatchTaskEither(login(form.asData()), loginErrorL.set, userL.set);
-    dispatch(loginIsLoadingL.set(false));
-  };
-
-  const error = loginErrorL.get(state);
-  const isLoading = loginIsLoadingL.get(state);
+  const submit = useCallback(
+    () =>
+      loginTask.dispatch(login(form.asData()), {
+        onSuccess: flow(userL.set, appState.dispatch),
+      }),
+    [appState.dispatch, form, loginTask]
+  );
 
   return (
     <Form onSubmit={submit}>
       <Headline id="login_title">Login</Headline>
-      <ErrorMessage id="login_error">{error?.message}</ErrorMessage>
+      <ErrorMessage id="login_error">{errorMessage(loginTask)}</ErrorMessage>
       <FormTextInput
         label="User name"
         lens={usernameL}
@@ -71,7 +68,7 @@ export const LoginForm = () => {
       <ButtonGroup>
         <FormSubmitButton
           id="login_submit"
-          disabled={isLoading || form.hasErrors}
+          disabled={isProcessing(loginTask) || form.hasErrors}
         >
           Login
         </FormSubmitButton>

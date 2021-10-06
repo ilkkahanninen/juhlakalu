@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import { getCurrentUser } from "./api/api";
-import { AppStateProvider, errorL, useAppState, userL } from "./state/AppState";
-import { LoginView } from "./views/login/LoginView";
-import { MainView } from "./views/main/MainView";
-
+import { AppStateProvider, useAppState, userL } from "./state/AppState";
+import { useOnMount } from "./state/useOnMount";
+import { ignoreDispatch } from "./state/useStore";
 import "./style/normalize.css";
 import "./style/typography.less";
-import { useOnMount } from "./state/useOnMount";
+import { LoginView } from "./views/login/LoginView";
 import { LogoutHandler } from "./views/login/LogoutHandler";
+import { MainView } from "./views/main/MainView";
 
 const App = () => (
   <AppStateProvider>
@@ -24,7 +24,7 @@ const AuthCheck = () => {
   const [isReady, setReady] = useState(false);
 
   useOnMount(() => {
-    dispatchTaskEither(initialAuthCheck, errorL.set, userL.set).then(() =>
+    dispatchTaskEither(initialAuthCheck, ignoreDispatch, userL.set).then(() =>
       setReady(true)
     );
   });

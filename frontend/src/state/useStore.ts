@@ -2,7 +2,7 @@ import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export type StateMapFn<T> = (s: T) => T;
 export type StateDispatchFn<T> = (f: StateMapFn<T>) => void;
@@ -24,9 +24,17 @@ export type StoreHook<T> = {
 };
 
 export const useStore = <T>(initialState: T): StoreHook<T> => {
+  const [mounted, setMounted] = useState(true);
+  useEffect(() => () => setMounted(false), []);
+
   const [state, setState] = useState(initialState);
 
-  const dispatch: StateDispatchFn<T> = setState;
+  const dispatch: StateDispatchFn<T> = useCallback(
+    (state) => {
+      mounted && setState(state);
+    },
+    [mounted]
+  );
 
   const dispatchTask: StateDispatchTaskFn<T> = useCallback(
     async (task, map) => pipe(await task(), map, dispatch),
@@ -44,3 +52,8 @@ export const useStore = <T>(initialState: T): StoreHook<T> => {
     [dispatch, dispatchTask, dispatchTaskEither, state]
   );
 };
+
+export const ignoreDispatch =
+  <A>() =>
+  (a: A) =>
+    a;

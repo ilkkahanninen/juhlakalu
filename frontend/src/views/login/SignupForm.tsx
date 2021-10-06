@@ -1,3 +1,4 @@
+import { flow } from "fp-ts/lib/function";
 import { Lens } from "monocle-ts";
 import React from "react";
 import { signup } from "../../api/api";
@@ -10,15 +11,13 @@ import {
   FormTextInput,
 } from "../../components/forms/TextInput";
 import { NewUser } from "../../rust-types/NewUser";
+import { User } from "../../rust-types/User";
+import { useAppState, userL } from "../../state/AppState";
 import {
-  signupErrorL,
-  signupIsLoadingL,
-  signupViewL,
-  useAppState,
-  useResetState,
-  userL,
-} from "../../state/AppState";
-import { startedAsyncState } from "../../state/asyncState";
+  customErrorMessage,
+  isProcessing,
+  useTaskState,
+} from "../../state/TaskState";
 import * as F from "../../utils/forms";
 import { useForm } from "../../utils/useForm";
 import * as V from "../../utils/validators";
@@ -50,32 +49,25 @@ const signupValidations = F.formValidator(
   F.fieldCompare(passwordConfirmL, passwordL, V.passwordsMatch)
 );
 
+const signupErrorMessage = customErrorMessage({
+  AlreadyExists: "User name already exists",
+});
+
 export const SignupForm = () => {
-  const { state, dispatch, dispatchTaskEither } = useAppState();
-  useResetState(signupViewL, { error: undefined, isLoading: false });
-
+  const appState = useAppState();
   const form = useForm(emptyForm, signupValidations);
+  const signupTask = useTaskState<User>();
 
-  const submit = async () => {
-    dispatch(signupViewL.set(startedAsyncState));
-    await dispatchTaskEither(
-      signup(form.asData()),
-      signupErrorL.set,
-      userL.set
-    );
-    dispatch(signupIsLoadingL.set(false));
-  };
-
-  const error = signupErrorL.get(state);
-  const isLoading = signupIsLoadingL.get(state);
+  const submit = () =>
+    signupTask.dispatch(signup(form.asData()), {
+      onSuccess: flow(userL.set, appState.dispatch),
+    });
 
   return (
     <Form onSubmit={submit}>
       <Headline id="signup_title">Sign up</Headline>
       <ErrorMessage id="signup_error">
-        {error?.error === "AlreadyExists"
-          ? "User name already exists"
-          : error?.message}
+        {signupErrorMessage(signupTask)}
       </ErrorMessage>
       <FormTextInput
         id="signup_username"
@@ -113,7 +105,7 @@ export const SignupForm = () => {
       <ButtonGroup>
         <FormSubmitButton
           id="signup_submit"
-          disabled={isLoading || form.hasErrors}
+          disabled={isProcessing(signupTask) || form.hasErrors}
         >
           Sign up
         </FormSubmitButton>

@@ -3,12 +3,13 @@ import { logout } from "../../api/api";
 import { RaisedButton } from "../../components/atoms/buttons";
 import { Headline } from "../../components/atoms/typography";
 import { ViewContainer } from "../../components/atoms/ViewContainer";
-import { errorL, useAppState, userL } from "../../state/AppState";
+import { useAppState, userL } from "../../state/AppState";
+import { ignoreDispatch } from "../../state/useStore";
 
 export const MainView = () => {
   const { state, dispatchTaskEither } = useAppState();
   const logoutUser = () => {
-    dispatchTaskEither(logout(), errorL.set, userL.set);
+    dispatchTaskEither(logout(), ignoreDispatch, userL.set);
   };
 
   return (
