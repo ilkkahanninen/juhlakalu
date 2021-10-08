@@ -1,3 +1,4 @@
+import CssBaseline from "@mui/material/CssBaseline";
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
@@ -5,14 +6,11 @@ import { getCurrentUser } from "./api/api";
 import { AppStateProvider, useAppState, userL } from "./state/AppState";
 import { useOnMount } from "./state/useOnMount";
 import { ignoreDispatch } from "./state/useStore";
-import "./style/normalize.css";
-import "./style/typography.less";
-import { LoginView } from "./views/login/LoginView";
-import { LogoutHandler } from "./views/login/LogoutHandler";
 import { MainView } from "./views/main/MainView";
 
 const App = () => (
   <AppStateProvider>
+    <CssBaseline />
     <AuthCheck />
   </AppStateProvider>
 );
@@ -29,7 +27,7 @@ const AuthCheck = () => {
     );
   });
 
-  return isReady ? state.user ? <Routing /> : <LoginView /> : null;
+  return isReady ? <Routing /> : null;
 };
 
 const Routing = () => (
@@ -37,9 +35,6 @@ const Routing = () => (
     <Switch>
       <Route exact path="/">
         <MainView />
-      </Route>
-      <Route path="/logout">
-        <LogoutHandler />
       </Route>
       <Route>404 Not found</Route>
     </Switch>

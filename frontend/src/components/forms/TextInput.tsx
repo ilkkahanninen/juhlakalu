@@ -1,3 +1,5 @@
+import TextField, { TextFieldProps } from "@mui/material/TextField";
+import * as A from "fp-ts/Array";
 import { flow, pipe } from "fp-ts/lib/function";
 import { Lens } from "monocle-ts";
 import React, { useCallback, useMemo } from "react";
@@ -9,61 +11,10 @@ import {
   fieldTouchedL,
   fieldValueL,
 } from "../../utils/forms";
-import { emptyAsNull, joinClassNames } from "../../utils/strings";
+import { emptyAsNull } from "../../utils/strings";
 import { FormHook } from "../../utils/useForm";
-import "./TextInput.less";
-
-export type TextInputProps = {
-  id?: string;
-  value: string;
-  onChange: (s: string) => void;
-  onBlur?: (s: string) => void;
-  disabled?: boolean;
-  className?: string;
-  label?: string;
-  type?: TextInputType;
-  error?: string;
-};
 
 export type TextInputType = "text" | "password" | "email";
-
-export const TextInput = (props: TextInputProps) => {
-  const onChangeProp = props.onChange;
-  const onChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      onChangeProp(event.target.value);
-    },
-    [onChangeProp]
-  );
-
-  const onBlurProp = props.onBlur;
-  const onBlur = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      onBlurProp?.(event.target.value);
-    },
-    [onBlurProp]
-  );
-
-  return (
-    <label className="textinput__container">
-      {props.label && <span className="textinput__label">{props.label}</span>}
-      <input
-        id={props.id}
-        type={props.type || "text"}
-        value={props.value}
-        onChange={onChange}
-        onBlur={onBlur}
-        disabled={props.disabled}
-        className={joinClassNames(
-          "textinput__input",
-          props.error && "textinput__input--error",
-          props.className
-        )}
-      />
-      {props.error && <div className="textinput__error">{props.error}</div>}
-    </label>
-  );
-};
 
 type BaseFormTextInputProps<S extends object> = {
   id?: string;
@@ -91,13 +42,33 @@ export const FormTextInput = <S extends object>({
     [lens]
   );
 
+  const error: Partial<TextFieldProps> = useMemo(() => {
+    const errors = L.errors.get(form.state);
+    return A.isEmpty(errors)
+      ? {}
+      : {
+          error: true,
+          helperText: errors.join(", "),
+        };
+  }, [L.errors, form.state]);
+
+  const onChange = useMemo(
+    () => flow(getEventValue, L.value.set, form.setState),
+    [L.value.set, form.setState]
+  );
+
+  const onBlur = useCallback(
+    () => pipe(L.touched.set(true), form.setState),
+    [L.touched, form.setState]
+  );
+
   return (
-    <TextInput
+    <TextField
       {...props}
+      {...error}
       value={L.value.get(form.state)}
-      error={L.errors.get(form.state).join(", ")}
-      onChange={flow(L.value.set, form.setState)}
-      onBlur={() => pipe(L.touched.set(true), form.setState)}
+      onChange={onChange}
+      onBlur={onBlur}
     />
   );
 };
@@ -107,6 +78,7 @@ export type FormNullableTextInputProps<S extends object> =
     lens: Lens<AsForm<S>, FieldNullableString>;
   };
 
+// TODO: Get rid of DRY
 export const FormNullableTextInput = <S extends object>({
   lens,
   form,
@@ -121,13 +93,37 @@ export const FormNullableTextInput = <S extends object>({
     [lens]
   );
 
+  const error: Partial<TextFieldProps> = useMemo(() => {
+    const errors = L.errors.get(form.state);
+    return A.isEmpty(errors)
+      ? {}
+      : {
+          error: true,
+          helperText: errors.join(", "),
+        };
+  }, [L.errors, form.state]);
+
+  const onChange = useMemo(
+    () => flow(getEventValue, emptyAsNull, L.value.set, form.setState),
+    [L.value.set, form.setState]
+  );
+
+  const onBlur = useCallback(
+    () => pipe(L.touched.set(true), form.setState),
+    [L.touched, form.setState]
+  );
+
   return (
-    <TextInput
+    <TextField
       {...props}
+      {...error}
       value={L.value.get(form.state) || ""}
-      error={L.errors.get(form.state).join(", ")}
-      onChange={flow(emptyAsNull, L.value.set, form.setState)}
-      onBlur={() => pipe(L.touched.set(true), form.setState)}
+      onChange={onChange}
+      onBlur={onBlur}
     />
   );
 };
+
+const getEventValue = (
+  event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+): string => event.target.value;

@@ -1,4 +1,4 @@
-import { flow, pipe } from "fp-ts/lib/function";
+import * as O from "fp-ts/Option";
 import * as TE from "fp-ts/TaskEither";
 import { useCallback, useMemo } from "react";
 import { ErrorCode } from "../rust-types/ErrorCode";
@@ -99,12 +99,12 @@ export const isProcessing = (hook: TaskStateHook<any>): boolean =>
 export const isDone = (hook: TaskStateHook<any>): boolean =>
   hook.state === "ok" || hook.state === "fail";
 
-export const errorMessage = (hook: TaskStateHook<any>): string | undefined =>
-  hook.state === "fail" ? hook.error.message : undefined;
+export const errorMessage = (hook: TaskStateHook<any>): O.Option<string> =>
+  hook.state === "fail" ? O.some(hook.error.message) : O.none;
 
 export const customErrorMessage =
   (customErrorMessages: Partial<Record<ErrorCode, string>>) =>
-  (hook: TaskStateHook<any>): string | undefined =>
+  (hook: TaskStateHook<any>): O.Option<string> =>
     hook.state === "fail"
-      ? customErrorMessages[hook.error.error] || hook.error.message
-      : undefined;
+      ? O.some(customErrorMessages[hook.error.error] || hook.error.message)
+      : O.none;
