@@ -14,7 +14,7 @@ import {
 import { emptyAsNull } from "../../utils/strings";
 import { FormHook } from "../../utils/useForm";
 
-export type TextInputType = "text" | "password" | "email";
+export type TextInputType = "text" | "password" | "email" | "tel";
 
 type BaseFormTextInputProps<S extends object> = {
   id?: string;

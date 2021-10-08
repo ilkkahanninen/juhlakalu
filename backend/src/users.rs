@@ -5,13 +5,15 @@ use crate::auth::validate_admin_role;
 use crate::database::DbClient;
 use crate::database::DbPool;
 use crate::errors::JkError;
+use crate::validation::validate;
 use actix_session::Session;
 use actix_web::{get, post, web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use tokio_pg_mapper_derive::PostgresMapper;
 use ts_rs::{export, TS};
+use validator::Validate;
 
-#[derive(Deserialize, PostgresMapper, Serialize, Debug, TS)]
+#[derive(Deserialize, PostgresMapper, Serialize, Debug, TS, Validate)]
 #[pg_mapper(table = "users")]
 pub struct User {
     pub username: String,
@@ -37,12 +39,15 @@ impl From<NewUser> for User {
     }
 }
 
-#[derive(Deserialize, PostgresMapper, Serialize, Debug, TS)]
+#[derive(Deserialize, PostgresMapper, Serialize, Debug, TS, Validate)]
 #[pg_mapper(table = "users")]
 pub struct NewUser {
+    #[validate(length(min = 4))]
     pub username: String,
+    #[validate(email)]
     pub email: Option<String>,
     pub phone: Option<String>,
+    #[validate(length(min = 8))]
     pub password: String,
 }
 
@@ -150,6 +155,7 @@ async fn create_user_route(
     session: Session,
     user: web::Json<NewUser>,
 ) -> Result<impl Responder, JkError> {
+    validate(&user)?;
     let user = create_user(&mut DbClient::from(&db_pool).await?, &user).await?;
     set_user_session(&session, &user)?;
     Ok(HttpResponse::Ok().json(user))

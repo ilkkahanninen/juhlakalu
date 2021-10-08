@@ -1,5 +1,5 @@
-import * as F from "./forms";
 import * as string from "fp-ts/string";
+import * as F from "./forms";
 
 // Atomic validators
 
@@ -26,7 +26,7 @@ export const username = F.combine(
 
 export const password = F.combine(
   trim,
-  strMinLength(4, "Password is too short")
+  strMinLength(8, "Password is too short")
 );
 
 export const passwordsMatch = equals<string>("Passwords do not match");

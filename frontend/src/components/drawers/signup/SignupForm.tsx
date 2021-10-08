@@ -85,6 +85,7 @@ export const SignupForm = (props: SignupFormProps) => {
         <FormNullableTextInput
           id="signup_phone"
           lens={phoneL}
+          type="tel"
           label="Phone"
           form={form}
         />

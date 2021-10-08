@@ -1,6 +1,6 @@
 use std::io::{Error, ErrorKind};
 
-use actix_web::{http::StatusCode, Error as ActixError, HttpResponse, ResponseError};
+use actix_web::{http::StatusCode, web, Error as ActixError, HttpResponse, ResponseError};
 use config::ConfigError;
 use deadpool_postgres::config::ConfigError as PoolConfigError;
 use deadpool_postgres::PoolError;
@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use tokio_pg_mapper::Error as PGMError;
 use tokio_postgres::Error as PGError;
 use ts_rs::{export, TS};
+use validator::{Validate, ValidationErrors};
 
 #[derive(Display, From, Debug)]
 pub enum JkError {
@@ -21,6 +22,7 @@ pub enum JkError {
     PoolError(PoolError),
     PoolConfigError(PoolConfigError),
     ActixError(ActixError),
+    ValidationError(ValidationErrors),
 }
 
 impl std::error::Error for JkError {}
@@ -33,6 +35,7 @@ impl JkError {
             JkError::PGError(error) if Self::is_unique_constraint_violation(error) => {
                 ErrorCode::AlreadyExists
             }
+            JkError::ValidationError(_) => ErrorCode::ValidationError,
             _ => ErrorCode::Internal,
         }
     }
@@ -66,11 +69,12 @@ impl From<JkError> for Error {
     }
 }
 
-#[derive(Serialize, Deserialize, TS)]
+#[derive(Serialize, TS)]
 pub struct ErrorMessage {
     status_code: u16,
     error: ErrorCode,
     message: &'static str,
+    info: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, TS)]
@@ -79,6 +83,7 @@ pub enum ErrorCode {
     Unauthorized,
     AlreadyExists,
     Internal,
+    ValidationError,
 }
 
 impl ErrorCode {
@@ -88,6 +93,7 @@ impl ErrorCode {
             ErrorCode::Unauthorized => "Unauthorized",
             ErrorCode::AlreadyExists => "Already exists",
             ErrorCode::Internal => "Internal server error",
+            ErrorCode::ValidationError => "Validation error",
         }
     }
 }
@@ -105,6 +111,7 @@ impl ResponseError for JkError {
             JkError::PGError(error) if Self::is_unique_constraint_violation(error) => {
                 StatusCode::CONFLICT
             }
+            JkError::ValidationError(_) => StatusCode::BAD_REQUEST,
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -113,11 +120,16 @@ impl ResponseError for JkError {
         let status_code = self.status_code();
         let error = self.errorcode();
         let message = error.message();
+        let info = match self {
+            JkError::ValidationError(errors) => Some(errors.to_string()),
+            _ => None,
+        };
 
         HttpResponse::build(status_code).json(ErrorMessage {
             status_code: status_code.as_u16(),
             error,
             message,
+            info,
         })
     }
 }

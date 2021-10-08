@@ -4,6 +4,7 @@ mod database;
 mod errors;
 mod tests;
 mod users;
+mod validation;
 
 use actix_files::{Files, NamedFile};
 use actix_session::CookieSession;
