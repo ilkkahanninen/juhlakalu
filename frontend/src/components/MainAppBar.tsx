@@ -43,7 +43,12 @@ export const MainAppBar = (props: MainAppBarProps) => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography
+            id="appbar_title"
+            variant="h6"
+            component="div"
+            sx={{ flexGrow: 1 }}
+          >
             {props.title}
           </Typography>
           <AuthButtons
@@ -94,6 +99,7 @@ const AuthButtons = (props: AuthButtonsProps) => {
   return state.user ? (
     <>
       <Button
+        id="appbar_account"
         color="inherit"
         onClick={openMenu}
         endIcon={<AccountIcon />}
@@ -101,7 +107,7 @@ const AuthButtons = (props: AuthButtonsProps) => {
         aria-controls="menu-appbar"
         aria-haspopup="true"
       >
-        {state.user.username}
+        <span id="appbar_username">{state.user.username}</span>
       </Button>
       <Menu
         id="menu-appbar"
@@ -118,15 +124,17 @@ const AuthButtons = (props: AuthButtonsProps) => {
         open={Boolean(anchorEl)}
         onClose={closeMenu}
       >
-        <MenuItem onClick={logoutUser}>Log out</MenuItem>
+        <MenuItem id="appbar_logout" onClick={logoutUser}>
+          Log out
+        </MenuItem>
       </Menu>
     </>
   ) : (
     <ButtonGroup variant="text" color="inherit" aria-label="login button group">
-      <Button color="inherit" onClick={showLogin}>
+      <Button id="appbar_login" color="inherit" onClick={showLogin}>
         Login
       </Button>
-      <Button color="inherit" onClick={showSignup}>
+      <Button id="appbar_signup" color="inherit" onClick={showSignup}>
         Sign up
       </Button>
     </ButtonGroup>

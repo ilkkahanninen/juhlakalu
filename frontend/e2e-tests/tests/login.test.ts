@@ -1,18 +1,18 @@
-import { getElementText, getUrl, logout, resetAll } from "../utils";
+import { logout, resetAll } from "../utils";
+import * as AppBar from "./views/AppBar";
 import * as Login from "./views/Login";
 import * as Signup from "./views/Signup";
-import * as Main from "./views/Main";
 
 beforeEach(resetAll);
 
 describe("Authentication", () => {
-  test("Login works", async () => {
+  test("Login as admin", async () => {
     await Login.open();
     await Login.typeUsername("admin");
     await Login.typePassword("admin2");
     await Login.submit();
 
-    expect(await Main.getTitle()).toEqual(`Hello, admin!`);
+    expect(await AppBar.getUsername()).toEqual("admin");
   });
 
   test("Login with invalid credentials fails", async () => {
@@ -33,7 +33,7 @@ describe("Authentication", () => {
     await Signup.typePasswordConfirm("hunter2");
     await Signup.submit();
 
-    expect(await Main.getTitle()).toEqual(`Hello, john!`);
+    expect(await AppBar.getUsername()).toEqual("john");
   });
 
   test("Signup with existing user name fails", async () => {
@@ -60,6 +60,6 @@ describe("Authentication", () => {
     await Login.typePassword("hunter2");
     await Login.submit();
 
-    expect(await Main.getTitle()).toEqual(`Hello, john!`);
+    expect(await AppBar.getUsername()).toEqual("john");
   });
 });

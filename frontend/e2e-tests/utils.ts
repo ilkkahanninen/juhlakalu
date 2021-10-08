@@ -15,8 +15,14 @@ export const initFixtures = async () => {
 };
 
 export const logout = async () => {
-  await page.goto(getUrl("/logout"));
-  await page.waitForSelector("#login_title");
+  await page.goto(getUrl());
+  await page.waitForSelector("#appbar_title");
+  const account = await page.$("#appbar_account");
+  if (account) {
+    await account.click();
+    await page.click("#appbar_logout");
+    await page.waitForSelector("#appbar_login");
+  }
 };
 
 export const resetAll = async () => {
@@ -25,7 +31,7 @@ export const resetAll = async () => {
 };
 
 export const getElementText = async (selector: string) => {
-  await page.waitForSelector(selector);
+  await page.waitForSelector(selector, { timeout: 300 });
   const element = await page.$(selector);
   return await page.evaluate((el) => el.textContent, element);
 };

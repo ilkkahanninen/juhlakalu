@@ -1,8 +1,10 @@
 import { getElementText, getUrl } from "../../utils";
+import * as AppBar from "./AppBar";
 
 export const open = async () => {
   await page.goto(getUrl());
-  await page.waitForSelector("#signup_title");
+  await page.waitForSelector("#appbar_signup");
+  await AppBar.clickSignup();
 };
 
 export const typeUsername = async (username: string) => {
