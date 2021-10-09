@@ -6,6 +6,7 @@ import { getCurrentUser } from "./api/api";
 import { AppStateProvider, useAppState, userL } from "./state/AppState";
 import { useOnMount } from "./state/useOnMount";
 import { ignoreDispatch } from "./state/useStore";
+import { CompoMgmtView } from "./views/compoMgmt/CompoMgmtView";
 import { MainView } from "./views/main/MainView";
 
 const App = () => (
@@ -35,6 +36,9 @@ const Routing = () => (
     <Switch>
       <Route exact path="/">
         <MainView />
+      </Route>
+      <Route exact path="/admin/compos">
+        <CompoMgmtView />
       </Route>
       <Route>404 Not found</Route>
     </Switch>

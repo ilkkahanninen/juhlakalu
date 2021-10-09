@@ -57,3 +57,11 @@ export const ignoreDispatch =
   <A>() =>
   (a: A) =>
     a;
+
+export const tapDispatch =
+  <A, S>(fn: (a: A) => void) =>
+  (a: A): StateMapFn<S> =>
+  (state) => {
+    fn(a);
+    return state;
+  };

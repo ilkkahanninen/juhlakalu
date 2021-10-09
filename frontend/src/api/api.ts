@@ -1,3 +1,4 @@
+import { Compo } from "../rust-types/Compo";
 import { Credentials } from "../rust-types/Credentials";
 import { NewUser } from "../rust-types/NewUser";
 import { User } from "../rust-types/User";
@@ -9,3 +10,5 @@ export const login = fetchJson<Credentials, User>("POST", "/auth/login");
 export const logout = fetchJson<void, undefined>("GET", "/auth/logout");
 export const getCurrentUser = fetchJson<void, User>("GET", "/auth/currentUser");
 export const signup = fetchJson<NewUser, User>("POST", "/users/signup");
+
+export const getCompos = fetchJson<void, Compo[]>("GET", "/compos");

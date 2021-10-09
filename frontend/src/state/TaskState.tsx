@@ -108,3 +108,22 @@ export const customErrorMessage =
     hook.state === "fail"
       ? O.some(customErrorMessages[hook.error.error] || hook.error.message)
       : O.none;
+
+export const renderState =
+  <T,>(
+    onProcessing: () => JSX.Element,
+    onFail: (e: ErrorMessage) => JSX.Element,
+    onOk: (data: T) => JSX.Element
+  ) =>
+  (hook: TaskStateHook<T>): JSX.Element | null => {
+    switch (hook.state) {
+      case "initial":
+        return null;
+      case "processing":
+        return onProcessing();
+      case "fail":
+        return onFail(hook.error);
+      case "ok":
+        return onOk(hook.result);
+    }
+  };
