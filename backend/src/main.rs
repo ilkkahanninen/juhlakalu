@@ -1,4 +1,5 @@
 mod auth;
+mod compos;
 mod config;
 mod database;
 mod errors;
@@ -65,7 +66,8 @@ fn configure_api(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api")
             .service(web::scope("/auth").configure(auth::configure))
-            .service(web::scope("/users").configure(users::configure)),
+            .service(web::scope("/users").configure(users::configure))
+            .service(web::scope("/compos").configure(compos::configure)),
     );
 }
 

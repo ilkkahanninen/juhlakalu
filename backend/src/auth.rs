@@ -46,6 +46,10 @@ pub fn validate_admin_role(session: &Session) -> Result<(), JkError> {
     }
 }
 
+pub fn get_user_session(session: &Session) -> Result<Option<User>, JkError> {
+    Ok(session.get::<User>("user")?)
+}
+
 pub fn set_user_session(session: &Session, user: &User) -> Result<(), JkError> {
     Ok(session.set("user", &user)?)
 }

@@ -1,6 +1,6 @@
 use std::io::{Error, ErrorKind};
 
-use actix_web::{http::StatusCode, web, Error as ActixError, HttpResponse, ResponseError};
+use actix_web::{http::StatusCode, Error as ActixError, HttpResponse, ResponseError};
 use config::ConfigError;
 use deadpool_postgres::config::ConfigError as PoolConfigError;
 use deadpool_postgres::PoolError;
@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use tokio_pg_mapper::Error as PGMError;
 use tokio_postgres::Error as PGError;
 use ts_rs::{export, TS};
-use validator::{Validate, ValidationErrors};
+use validator::ValidationErrors;
 
 #[derive(Display, From, Debug)]
 pub enum JkError {
