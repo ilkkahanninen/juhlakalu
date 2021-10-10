@@ -55,7 +55,6 @@ impl DbClient {
         Ok(T::from_row_ref(&row)?)
     }
 
-    #[allow(dead_code)]
     pub async fn query_opt<T>(
         &self,
         query: &str,
@@ -76,6 +75,16 @@ impl DbClient {
             Some(Ok(r)) => Ok(Some(r)),
             None => Ok(None),
         }
+    }
+
+    pub async fn execute(
+        &self,
+        query: &str,
+        params: &[&(dyn ToSql + Sync)],
+    ) -> Result<(), JkError> {
+        let statement = self.prepare(query).await?;
+        self.client.execute(&statement, params).await?;
+        Ok(())
     }
 
     pub async fn exists(

@@ -39,15 +39,19 @@ async fn validate_credentials(client: &DbClient, credentials: &Credentials) -> R
     }
 }
 
-pub fn validate_admin_role(session: &Session) -> Result<(), JkError> {
-    match session.get::<User>("user")? {
-        Some(user) if user.is_admin() => Ok(()),
-        _ => Err(JkError::Unauthorized),
+pub fn is_admin(session: &Session) -> bool {
+    match session.get::<User>("user") {
+        Ok(Some(user)) if user.is_admin() => true,
+        _ => false,
     }
 }
 
-pub fn get_user_session(session: &Session) -> Result<Option<User>, JkError> {
-    Ok(session.get::<User>("user")?)
+pub fn validate_admin_role(session: &Session) -> Result<(), JkError> {
+    if is_admin(session) {
+        Ok(())
+    } else {
+        Err(JkError::Unauthorized)
+    }
 }
 
 pub fn set_user_session(session: &Session, user: &User) -> Result<(), JkError> {

@@ -38,6 +38,7 @@ export type TaskStateDispatchFn<T> = (
 ) => void;
 
 export type TaskStateHook<T> = TaskState<T> & {
+  reset: () => void;
   dispatch: TaskStateDispatchFn<T>;
 };
 
@@ -85,9 +86,13 @@ export const useTaskState = <T,>(): TaskStateHook<T> => {
     [store]
   );
 
+  const reset = useCallback(() => {
+    store.dispatch(() => initial);
+  }, [store]);
+
   const result = useMemo(
-    () => ({ ...store.state, dispatch }),
-    [dispatch, store.state]
+    () => ({ ...store.state, dispatch, reset }),
+    [dispatch, reset, store.state]
   );
 
   return result;
@@ -98,6 +103,9 @@ export const isProcessing = (hook: TaskStateHook<any>): boolean =>
 
 export const isDone = (hook: TaskStateHook<any>): boolean =>
   hook.state === "ok" || hook.state === "fail";
+
+export const isOk = <T,>(hook: TaskStateHook<T>): boolean =>
+  hook.state === "ok";
 
 export const errorMessage = (hook: TaskStateHook<any>): O.Option<string> =>
   hook.state === "fail" ? O.some(hook.error.message) : O.none;

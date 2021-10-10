@@ -4,6 +4,14 @@ use ts_rs::{export, TS};
 
 #[derive(Debug, Deserialize, Serialize, TS, PostgresMapper)]
 #[pg_mapper(table = "compos")]
+pub struct CompoUpdate {
+    pub title: String,
+    pub description: Option<String>,
+    pub state: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, TS, PostgresMapper)]
+#[pg_mapper(table = "compos")]
 pub struct Compo {
     pub id: i32,
     pub title: String,
@@ -16,7 +24,8 @@ pub struct Compo {
     pub results_public: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize, TS)]
+#[derive(Debug, Deserialize, Serialize, TS, PostgresMapper)]
+#[pg_mapper(table = "compo_states")]
 pub struct CompoState {
     pub id: String,
     pub order: i32,
@@ -30,4 +39,5 @@ pub struct CompoState {
 export! {
     Compo => "frontend/src/rust-types/Compo.ts",
     CompoState => "frontend/src/rust-types/CompoState.ts",
+    CompoUpdate => "frontend/src/rust-types/CompoUpdate.ts",
 }

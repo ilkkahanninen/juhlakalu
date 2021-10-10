@@ -1,10 +1,10 @@
-import { pipe } from "fp-ts/lib/function";
 import * as E from "fp-ts/Either";
+import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
-import { ErrorMessage } from "../rust-types/ErrorMessage";
 import "isomorphic-unfetch";
+import { ErrorMessage } from "../rust-types/ErrorMessage";
 
-export type Method = "GET" | "POST";
+export type Method = "GET" | "POST" | "PUT" | "DELETE";
 
 export type Router = (route: string) => string;
 

@@ -1,5 +1,6 @@
 import { Lens } from "monocle-ts";
 import { Compo } from "../rust-types/Compo";
+import { CompoState } from "../rust-types/CompoState";
 import { User } from "../rust-types/User";
 import { createStoreContext } from "./storeContext";
 import { useOnMount } from "./useOnMount";
@@ -9,11 +10,13 @@ import { useOnMount } from "./useOnMount";
 export type AppState = {
   user?: User;
   compos: Compo[];
+  compoStates: CompoState[];
 };
 
 export const initialState: AppState = {
   user: undefined,
   compos: [],
+  compoStates: [],
 };
 
 // Lenses
@@ -22,6 +25,7 @@ const rootProp = Lens.fromProp<AppState>();
 
 export const userL = rootProp("user");
 export const composL = rootProp("compos");
+export const compoStatesL = rootProp("compoStates");
 
 // React context
 

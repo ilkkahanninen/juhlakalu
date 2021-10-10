@@ -22,6 +22,10 @@ type BaseFormTextInputProps<S extends object> = {
   label?: string;
   disabled?: boolean;
   type?: TextInputType;
+  fullWidth?: boolean;
+  multiline?: boolean;
+  select?: boolean;
+  children?: React.ReactNode;
 };
 
 export type FormTextInputProps<S extends object> = BaseFormTextInputProps<S> & {

@@ -19,6 +19,8 @@ export const trim = F.formatter(string.trim);
 
 // Higher level validators
 
+export const notEmpty = strMinLength(1, "Cannot be empty");
+
 export const username = F.combine(
   trim,
   strMinLength(4, "User name is too short")

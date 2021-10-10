@@ -1,5 +1,5 @@
 import * as E from "fp-ts/Either";
-import { pipe } from "fp-ts/lib/function";
+import { constant, pipe } from "fp-ts/lib/function";
 import { useCallback, useMemo, useState } from "react";
 import { symFlatten, symMap } from "./either";
 import {
@@ -15,10 +15,13 @@ import {
 export type FormHook<T extends object> = {
   state: AsForm<T>;
   hasErrors: boolean;
+  initState: FormInitStateFn<T>;
   setState: FormSetStateFn<T>;
   validate: () => void;
   asData: FormAsDataFn<T>;
 };
+
+export type FormInitStateFn<T extends object> = (t: T) => void;
 
 export type FormSetStateFn<T extends object> = (
   modify: (f: AsForm<T>) => AsForm<T>
@@ -73,6 +76,11 @@ export const useForm = <T extends object>(
     [form, validation]
   );
 
+  const initFormState: FormInitStateFn<T> = useCallback(
+    (data) => pipe(data, fromDataObject, constant, setFormState),
+    [setFormState]
+  );
+
   const validateForm = useCallback(
     () => pipe(form, validation(validateAll), toInternalState, setState),
     [form, validation]
@@ -84,11 +92,12 @@ export const useForm = <T extends object>(
     () => ({
       state: form,
       hasErrors,
+      initState: initFormState,
       setState: setFormState,
       validate: validateForm,
       asData,
     }),
-    [asData, form, hasErrors, setFormState, validateForm]
+    [asData, form, hasErrors, initFormState, setFormState, validateForm]
   );
 
   return response;
