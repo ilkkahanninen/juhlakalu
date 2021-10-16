@@ -7,13 +7,13 @@ import {
   FormNullableTextInput,
   FormTextInput,
 } from "../../components/forms/TextInput";
-import { Compo } from "../../rust-types/Compo";
+import { CompoUpdate } from "../../rust-types/CompoUpdate";
 import * as F from "../../utils/forms";
 import { FormHook } from "../../utils/useForm";
 import * as V from "../../utils/validators";
 import { useCompoStates } from "./useCompos";
 
-type CompoForm = F.AsForm<Compo>;
+type CompoForm = F.AsForm<CompoUpdate>;
 
 const compoFormLens = Lens.fromProp<CompoForm>();
 const titleL = compoFormLens("title");
@@ -23,7 +23,7 @@ const compoStateL = compoFormLens("state");
 export const validateCompoForm = F.formValidator(F.field(titleL, V.notEmpty));
 
 export type CompoFormProps = {
-  form: FormHook<Compo>;
+  form: FormHook<CompoUpdate>;
 };
 
 export const CompoForm = (props: CompoFormProps) => {

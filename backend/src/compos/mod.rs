@@ -2,7 +2,7 @@ mod database;
 mod types;
 
 use actix_session::Session;
-use actix_web::{get, put, web, HttpResponse, Responder};
+use actix_web::{get, post, put, web, HttpResponse, Responder};
 
 use crate::{
     auth::{is_admin, validate_admin_role},
@@ -42,6 +42,22 @@ async fn get_states(db_pool: web::Data<DbPool>) -> Result<impl Responder, JkErro
     Ok(HttpResponse::Ok().json(states))
 }
 
+#[post("")]
+async fn create(
+    db_pool: web::Data<DbPool>,
+    session: Session,
+    compo: web::Json<CompoUpdate>,
+) -> Result<impl Responder, JkError> {
+    validate_admin_role(&session)?;
+    let created = self::database::create(&DbClient::from(&db_pool).await?, &compo).await?;
+
+    let compo = self::database::get(&DbClient::from(&db_pool).await?, created.id, false).await?;
+    match compo {
+        Some(compo) => Ok(HttpResponse::Ok().json(compo)),
+        _ => Err(JkError::NotFound),
+    }
+}
+
 #[put("/{id}")]
 async fn update(
     web::Path(id): web::Path<i32>,
@@ -63,5 +79,6 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(get_all)
         .service(get_states)
         .service(get_by_id)
+        .service(create)
         .service(update);
 }

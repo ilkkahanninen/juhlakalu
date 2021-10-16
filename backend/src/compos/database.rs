@@ -1,4 +1,7 @@
-use crate::{database::DbClient, errors::JkError};
+use crate::{
+    database::{DbClient, Id},
+    errors::JkError,
+};
 
 use super::{Compo, CompoState, CompoUpdate};
 
@@ -52,7 +55,23 @@ pub async fn get(client: &DbClient, id: i32, public_only: bool) -> Result<Option
         .await
 }
 
-pub async fn update(client: &DbClient, id: i32, compo: &CompoUpdate) -> Result<(), JkError> {
+pub async fn create(client: &DbClient, compo: &CompoUpdate) -> Result<Id, JkError> {
+    client
+        .query_one(
+            "
+            INSERT INTO {{SCHEMA}}.compos(
+                title,
+                description,
+                state
+            ) VALUES ($1, $2, $3)
+            RETURNING id
+            ",
+            &[&compo.title, &compo.description, &compo.state],
+        )
+        .await
+}
+
+pub async fn update(client: &DbClient, id: i32, compo: &CompoUpdate) -> Result<u64, JkError> {
     client
         .execute(
             "

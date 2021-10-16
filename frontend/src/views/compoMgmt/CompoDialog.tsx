@@ -9,29 +9,23 @@ import Toolbar from "@mui/material/Toolbar";
 import { TransitionProps } from "@mui/material/transitions";
 import Typography from "@mui/material/Typography";
 import React, { useCallback, useEffect } from "react";
-import { Compo } from "../../rust-types/Compo";
+import { CompoUpdate } from "../../rust-types/CompoUpdate";
 import { useForm } from "../../utils/useForm";
 import { CompoForm, validateCompoForm } from "./CompoForm";
 
 export type CompoDialogProps = {
   title: string;
   submitButton: string;
-  compo: Compo | null;
+  compo: CompoUpdate | null;
   open: boolean;
   onClose: () => void;
-  onSubmit: (compo: Compo) => void;
+  onSubmit: null | ((compo: CompoUpdate) => void);
 };
 
-const emptyForm: Compo = {
-  id: 0,
+const emptyForm: CompoUpdate = {
   title: "",
   description: null,
-  state: "",
-  state_name: "",
-  public: false,
-  accept_entries: false,
-  voting_open: false,
-  results_public: false,
+  state: "hidden",
 };
 
 export const CompoDialog = (props: CompoDialogProps) => {
@@ -44,7 +38,7 @@ export const CompoDialog = (props: CompoDialogProps) => {
   }, [props.compo]);
 
   const submit = useCallback(() => {
-    props.onSubmit(form.asData());
+    props.onSubmit?.(form.asData());
   }, [form, props]);
 
   return (

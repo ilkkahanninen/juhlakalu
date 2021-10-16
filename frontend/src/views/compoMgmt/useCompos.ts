@@ -3,18 +3,19 @@ import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  createCompo,
   getCompoById,
   getCompos,
   getCompoStates,
   updateCompo,
 } from "../../api/api";
 import { Compo } from "../../rust-types/Compo";
+import { CompoUpdate } from "../../rust-types/CompoUpdate";
 import { ErrorMessage } from "../../rust-types/ErrorMessage";
 import { composL, compoStatesL, useAppState } from "../../state/AppState";
 import { isOk, useTaskState } from "../../state/TaskState";
 import { useOnMount } from "../../state/useOnMount";
 import { ignoreDispatch, tapDispatch } from "../../state/useStore";
-import { compoToCompoUpdate } from "../../utils/conversions";
 import { patchObjArrayById } from "../../utils/objects";
 
 export type ComposHook = {
@@ -38,8 +39,10 @@ export const useCompos = (): ComposHook => {
 
 export type CompoHook = {
   data: Compo | null;
-  save: (compo: Compo) => void;
+  create: (compo: CompoUpdate) => void;
+  update: (compoId: number) => (compo: CompoUpdate) => void;
   isSaved: boolean;
+  reset: () => void;
 };
 
 export const useCompo = (compoId: number | null): CompoHook => {
@@ -73,9 +76,18 @@ export const useCompo = (compoId: number | null): CompoHook => {
     [compoId, state]
   );
 
-  const save = useCallback(
-    (compo: Compo) => {
-      saveTask.dispatch(updateCompo(compo.id)(compoToCompoUpdate(compo)), {
+  const create = useCallback(
+    (compo: CompoUpdate) => {
+      saveTask.dispatch(createCompo(compo), {
+        onSuccess: (compo) => dispatch(composL.modify(A.append(compo))),
+      });
+    },
+    [dispatch, saveTask]
+  );
+
+  const update = useCallback(
+    (compoId: number) => (compo: CompoUpdate) => {
+      saveTask.dispatch(updateCompo(compoId)(compo), {
         onSuccess: (compo) =>
           dispatch(composL.modify(patchObjArrayById(compo))),
       });
@@ -86,10 +98,12 @@ export const useCompo = (compoId: number | null): CompoHook => {
   return useMemo(
     () => ({
       data,
-      save,
+      create,
+      update,
       isSaved: isOk(saveTask),
+      reset: saveTask.reset,
     }),
-    [data, save, saveTask]
+    [data, create, update, saveTask]
   );
 };
 

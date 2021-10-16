@@ -20,5 +20,6 @@ export const getCompoStates = fetchJson<void, CompoState[]>(
   "GET",
   "/compos/states"
 );
+export const createCompo = fetchJson<CompoUpdate, Compo>("POST", "/compos");
 export const updateCompo = (compoId: number) =>
   fetchJson<CompoUpdate, Compo>("PUT", `/compos/${compoId}`);

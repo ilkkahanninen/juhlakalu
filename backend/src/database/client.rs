@@ -81,10 +81,10 @@ impl DbClient {
         &self,
         query: &str,
         params: &[&(dyn ToSql + Sync)],
-    ) -> Result<(), JkError> {
+    ) -> Result<u64, JkError> {
         let statement = self.prepare(query).await?;
-        self.client.execute(&statement, params).await?;
-        Ok(())
+        let count = self.client.execute(&statement, params).await?;
+        Ok(count)
     }
 
     pub async fn exists(
