@@ -1,9 +1,10 @@
 import CssBaseline from "@mui/material/CssBaseline";
-import React, { useState } from "react";
+import React from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import { getCurrentUser } from "./api/api";
 import { AppStateProvider, useAppState, userL } from "./state/AppState";
+import { useBool } from "./state/useBool";
 import { useOnMount } from "./state/useOnMount";
 import { ignoreDispatch } from "./state/useStore";
 import { CompoMgmtView } from "./views/compoMgmt/CompoMgmtView";
@@ -20,11 +21,11 @@ const initialAuthCheck = getCurrentUser();
 
 const AuthCheck = () => {
   const { state, dispatchTaskEither } = useAppState();
-  const [isReady, setReady] = useState(false);
+  const isReady = useBool(false);
 
   useOnMount(() => {
-    dispatchTaskEither(initialAuthCheck, ignoreDispatch, userL.set).then(() =>
-      setReady(true)
+    dispatchTaskEither(initialAuthCheck, ignoreDispatch, userL.set).then(
+      isReady.set
     );
   });
 

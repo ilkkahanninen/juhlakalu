@@ -8,9 +8,10 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import React, { useCallback, useState } from "react";
+import React, { useCallback } from "react";
 import { logout } from "../api/api";
 import { useAppState, userL } from "../state/AppState";
+import { useBool } from "../state/useBool";
 import { ignoreDispatch } from "../state/useStore";
 import { LoginDrawer } from "./drawers/login/LoginDrawer";
 import { SignupDrawer } from "./drawers/signup/SignupDrawer";
@@ -20,15 +21,8 @@ export type MainAppBarProps = {
 };
 
 export const MainAppBar = (props: MainAppBarProps) => {
-  const [isLoginOpen, setLoginOpen] = useState(false);
-  const hideLogin = useCallback(() => {
-    setLoginOpen(false);
-  }, []);
-
-  const [isSignupOpen, setSignupOpen] = useState(false);
-  const hideSignup = useCallback(() => {
-    setSignupOpen(false);
-  }, []);
+  const loginOpen = useBool(false);
+  const signupOpen = useBool(false);
 
   return (
     <>
@@ -52,13 +46,13 @@ export const MainAppBar = (props: MainAppBarProps) => {
             {props.title}
           </Typography>
           <AuthButtons
-            onSetLoginOpen={setLoginOpen}
-            onSetSignupOpen={setSignupOpen}
+            onSetLoginOpen={loginOpen.toggle}
+            onSetSignupOpen={signupOpen.toggle}
           />
         </Toolbar>
       </AppBar>
-      <LoginDrawer open={isLoginOpen} onClose={hideLogin} />
-      <SignupDrawer open={isSignupOpen} onClose={hideSignup} />
+      <LoginDrawer open={loginOpen.state} onClose={loginOpen.unset} />
+      <SignupDrawer open={signupOpen.state} onClose={signupOpen.unset} />
     </>
   );
 };
