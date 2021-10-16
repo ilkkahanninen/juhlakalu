@@ -15,7 +15,7 @@ INSERT INTO {{SCHEMA}}.user_passwords (
 VALUES (
   E'admin',
   crypt(
-    'admin', gen_salt(
+    'password', gen_salt(
       'bf', 4)));
 
 --- User roles ---

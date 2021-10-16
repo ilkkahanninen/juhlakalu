@@ -128,7 +128,7 @@ mod tests {
     async fn test_login_success() {
         let resp = run_login_test(Credentials {
             username: "admin".into(),
-            password: "admin2".into(),
+            password: "password".into(),
         })
         .await;
         assert_eq!(resp.status(), StatusCode::OK);

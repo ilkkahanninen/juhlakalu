@@ -23,17 +23,23 @@ INSERT INTO {{SCHEMA}}.user_passwords (
   "username",
   "password_hash")
 VALUES (
-  -- admin:admin2
+  -- admin:password
   E'admin',
-  E'$2a$06$tKpDiLx4OLJqwwqX8WnBEe275M/C2ySYoXzahUxtcgG37DMjlDH8y'),
+  crypt(
+    'password', gen_salt(
+      'bf', 4))),
 (
-  -- voter:voter2
+  -- voter:password
   E'voter',
-  E'$2a$06$nbdo5REuQJCQRN2dNXFDzuHqa1YAzaPmWKmnkLKabFycVJoZ3lbQG'),
+  crypt(
+    'password', gen_salt(
+      'bf', 4))),
 (
-  -- newbie:newbie2
+  -- newbie:password
   E'newbie',
-  E'$2a$06$/yhMZa390uXt65wXmknHeuwDKJUdF0XBwRSDrpsj45xc1/dMTqpXq');
+  crypt(
+    'password', gen_salt(
+      'bf', 4)));
 
 --- User roles ---
 INSERT INTO {{SCHEMA}}.user_roles (
